@@ -1,7 +1,7 @@
 import type { BeginnerDoc, SymbolDoc, ToolDoc, Values } from '../../core/types';
 
 const S = {
-  Pb: { symbol: 'Pb', origin: 'P（Power：電力・容量）に b（base：基準）を添えた慣用の表記', meaning: '基準容量。各要素の％インピーダンスをそろえる物差しの容量', unit: 'kVA' },
+  Pb: { symbol: 'Pb', origin: 'P（Power：電力・容量）に b（base：基準）を添えた慣用の表記', meaning: '基準容量。各要素の％インピーダンスをそろえるときの基準にする容量', unit: 'kVA' },
   V: { symbol: 'V', origin: 'Voltage（電圧）の頭文字', meaning: '短絡点の線間電圧（基準電圧）', unit: 'V' },
   Ps: { symbol: 'Ps', origin: 'P（Power：容量）に s（source：電源）を添えた本サイトの表記', meaning: '受電点の三相短絡容量（電力会社から示される値）', unit: 'MVA' },
   Zs: { symbol: '%Zs', origin: '%Z（パーセントインピーダンス。Z は impedance の慣用記号）に s（source：電源）を添えた表記', meaning: '電源側（受電点より上流）の％インピーダンスを基準容量で表した値', unit: '%' },
