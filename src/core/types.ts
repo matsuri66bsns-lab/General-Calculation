@@ -101,6 +101,33 @@ export interface CalcResult {
   warnings: string[];
 }
 
+/** 記号・略号の説明。「何の略か」と「どんな意味か」を分けて書く */
+export interface SymbolDoc {
+  symbol: string;
+  /** 何の略か・由来（例：Area（面積）の頭文字）。本サイト独自の表記はその旨を書く */
+  origin: string;
+  meaning: string;
+  unit?: string;
+}
+
+/** 計算式の解説。入力（計算方式など）によって内容が変わるので build と同じ値から作る */
+export interface ToolDoc {
+  formulas: { title: string; expr: string; body: string }[];
+  symbols: SymbolDoc[];
+}
+
+/** 初学者向けの解説（画面の末尾に折りたたみで表示） */
+export interface BeginnerDoc {
+  /** そもそも何を求める計算か、設計のどの段階で使うか */
+  purpose: string[];
+  /** 用語と単位 */
+  terms: { term: string; desc: string }[];
+  /** 手計算の例 */
+  example: { title: string; steps: string[] };
+  /** よくある間違い・注意点 */
+  pitfalls: string[];
+}
+
 export interface ToolDef {
   /** 例: HV-01 */
   id: string;
@@ -114,6 +141,10 @@ export interface ToolDef {
   fields: Field[];
   defaults: RawValues;
   build: (v: Values) => CalcResult;
+  /** 計算式の解説と記号の説明 */
+  doc: (v: Values) => ToolDoc;
+  /** 初学者向けの解説 */
+  beginner: BeginnerDoc;
   /** 使い方・注意事項 */
   notes?: string[];
   /** 公開日（YYYY-MM-DD）。新着表示に使う */

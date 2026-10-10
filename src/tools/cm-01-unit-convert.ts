@@ -1,6 +1,7 @@
 import type { Field, RawValues, ToolDef } from '../core/types';
 import { SheetBuilder } from '../core/sheet';
 import { num, str } from '../core/values';
+import { cm01Beginner, cm01Doc } from './docs/cm-01';
 
 interface Unit {
   id: string;
@@ -137,6 +138,8 @@ export const unitConvert: ToolDef = {
     from_temp: 'C',
   },
   notes: ['冷凍トンは USRT = 3.5169 kW、日本冷凍トン JRT = 3.86 kW として換算します。'],
+  doc: cm01Doc,
+  beginner: cm01Beginner,
   build(v) {
     const q = QUANTITIES.find((q) => q.id === str(v, 'q')) ?? QUANTITIES[0];
     const from = q.units.find((u) => u.id === str(v, `from_${q.id}`)) ?? q.units[0];

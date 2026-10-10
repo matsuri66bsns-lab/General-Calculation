@@ -1842,3 +1842,232 @@ h1.page-head {
 .pipe__label.tag--hvac::before {
   display: none;
 }
+
+/* =========================================================
+   計算式の解説・記号と略号・初学者向けの解説
+   ========================================================= */
+.formula-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.formula {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) minmax(0, 5fr);
+  gap: 4px 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.formula:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.formula__title {
+  font-weight: 700;
+  grid-row: span 2;
+}
+
+.formula__expr {
+  justify-self: start;
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.formula__body {
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.doc-subhead {
+  font-size: 16px;
+  margin: 22px 0 8px;
+}
+
+.symbol-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.symbol-table th,
+.symbol-table td {
+  padding: 9px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.symbol-table thead th {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 2px solid var(--text);
+  white-space: nowrap;
+}
+
+.symbol-table__sym {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 56px;
+}
+
+.symbol-table__origin {
+  color: var(--text-2);
+  min-width: 220px;
+}
+
+.symbol-table__unit {
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.beginner {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.beginner > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 14px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.beginner > summary::-webkit-details-marker {
+  display: none;
+}
+
+.beginner > summary::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  align-self: center;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+.beginner[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.beginner__title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.beginner__hint {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.beginner__body {
+  display: grid;
+  gap: 22px;
+  padding: 0 20px 22px;
+}
+
+.beginner__body h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+}
+
+.beginner__body p + p {
+  margin-top: 8px;
+}
+
+.beginner__body p,
+.beginner__body li,
+.beginner__terms dd {
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.beginner__terms {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.beginner__terms div {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 3fr);
+  gap: 12px;
+}
+
+.beginner__terms dt {
+  font-weight: 700;
+}
+
+.beginner__terms dd {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.beginner__example-title {
+  font-weight: 500;
+}
+
+.beginner__steps,
+.beginner__body ul {
+  margin: 6px 0 0;
+  padding-left: 1.4em;
+}
+
+.beginner__steps li {
+  font-variant-numeric: tabular-nums;
+}
+
+.beginner__body li + li {
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .formula {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .formula__title {
+    grid-row: auto;
+  }
+
+  .beginner__terms div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .beginner > summary,
+  .beginner__body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media print {
+  .beginner {
+    display: none;
+  }
+}

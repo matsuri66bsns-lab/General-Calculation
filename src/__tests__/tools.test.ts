@@ -6,9 +6,13 @@ import { parseValues } from '../core/values';
 import { placeholders } from '../core/formula';
 import { stepUp, stepUpFormula } from '../core/sheet';
 import { QUANTITIES } from '../tools/cm-01-unit-convert';
-import type { CalcResult, RawValues, ToolDef } from '../core/types';
+import type { CalcResult, RawValues, ToolDef, Values } from '../core/types';
 
 function run(tool: ToolDef, overrides: RawValues = {}): CalcResult {
+  return runWithValues(tool, overrides).result;
+}
+
+function runWithValues(tool: ToolDef, overrides: RawValues = {}): { result: CalcResult; values: Values } {
   const raw = { ...tool.defaults, ...overrides };
   // select の apply を反映（画面で選んだときと同じ挙動にする）
   for (const f of tool.fields) {
@@ -19,7 +23,7 @@ function run(tool: ToolDef, overrides: RawValues = {}): CalcResult {
   }
   const { values, errors } = parseValues(tool.fields, raw);
   expect(errors).toEqual({});
-  return tool.build(values);
+  return { result: tool.build(values), values };
 }
 
 function value(result: CalcResult, key: string) {
@@ -84,6 +88,37 @@ describe('全ツール共通', () => {
     for (const t of TOOLS) {
       const res = run(t);
       for (const k of res.highlights) expect(() => value(res, k)).not.toThrow();
+    }
+  });
+
+  it('計算書に出る記号は、すべて記号の説明（何の略か・意味）に載っている', () => {
+    for (const t of TOOLS) {
+      const cases: RawValues[] = [{}];
+      for (const f of t.fields) if (f.type === 'select') for (const o of f.options) cases.push({ [f.key]: o.value });
+      for (const c of cases) {
+        const { result, values } = runWithValues(t, c);
+        const doc = t.doc(values);
+        const documented = new Set(doc.symbols.map((d) => d.symbol));
+        for (const r of result.rows) {
+          if (r.kind === 'section' || !r.symbol) continue;
+          expect(documented.has(r.symbol), `${t.id} ${JSON.stringify(c)}：記号 ${r.symbol} の説明がない`).toBe(true);
+        }
+        for (const d of doc.symbols) {
+          expect(d.origin.length, `${t.id} ${d.symbol} の由来`).toBeGreaterThan(0);
+          expect(d.meaning.length, `${t.id} ${d.symbol} の意味`).toBeGreaterThan(0);
+        }
+        expect(doc.formulas.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('初学者向けの解説の4項目がそろっている', () => {
+    for (const t of TOOLS) {
+      const b = t.beginner;
+      expect(b.purpose.length, t.id).toBeGreaterThan(0);
+      expect(b.terms.length, t.id).toBeGreaterThan(0);
+      expect(b.example.steps.length, t.id).toBeGreaterThan(0);
+      expect(b.pitfalls.length, t.id).toBeGreaterThan(0);
     }
   });
 

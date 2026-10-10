@@ -11,6 +11,7 @@ import type { CalcResult, RawValues, ToolDef } from '../core/types';
 import { FieldList } from '../components/Fields';
 import { CalcTable, Highlights, Warnings } from '../components/ResultView';
 import { CategoryTag } from '../components/CategoryTag';
+import { BeginnerGuide, FormulaDoc } from '../components/ToolDocs';
 import { Icon } from '../components/Icon';
 import { SITE_NAME } from '../components/Sidebar';
 import { NotFound } from './NotFound';
@@ -41,13 +42,15 @@ function ToolView({ tool }: { tool: ToolDef }) {
     };
   }, [tool]);
 
-  const { errors, result, calcError } = useMemo(() => {
+  const { errors, result, calcError, doc } = useMemo(() => {
     const parsed = parseValues(tool.fields, raw);
-    if (Object.keys(parsed.errors).length > 0) return { errors: parsed.errors, result: null, calcError: null };
+    // 解説は計算方式などの選択に合わせて切り替える（数値の入力誤りがあっても表示できる）
+    const doc = tool.doc(parsed.values);
+    if (Object.keys(parsed.errors).length > 0) return { errors: parsed.errors, result: null, calcError: null, doc };
     try {
-      return { errors: parsed.errors, result: tool.build(parsed.values) as CalcResult, calcError: null };
+      return { errors: parsed.errors, result: tool.build(parsed.values) as CalcResult, calcError: null, doc };
     } catch (e) {
-      if (e instanceof CalcError) return { errors: parsed.errors, result: null, calcError: e.message };
+      if (e instanceof CalcError) return { errors: parsed.errors, result: null, calcError: e.message, doc };
       throw e;
     }
   }, [tool, raw]);
@@ -64,7 +67,7 @@ function ToolView({ tool }: { tool: ToolDef }) {
     setExportError(null);
     try {
       const { exportExcel } = await import('../core/excel');
-      await exportExcel(tool, result);
+      await exportExcel(tool, result, doc);
     } catch (e) {
       console.error(e);
       setExportError('Excel ファイルを作成できませんでした。時間をおいて、もう一度お試しください。');
@@ -159,8 +162,16 @@ function ToolView({ tool }: { tool: ToolDef }) {
           </section>
         )}
 
+        <section className="panel section" aria-labelledby="doc-h">
+          <div className="panel__head">
+            <h2 id="doc-h">計算式の解説</h2>
+            <span className="muted small">根拠：{tool.references[0]}</span>
+          </div>
+          <FormulaDoc doc={doc} />
+        </section>
+
         <section className="panel section notes" aria-labelledby="notes-h">
-          <h2 id="notes-h">解説・注意事項</h2>
+          <h2 id="notes-h">注意事項・参考規格</h2>
           {tool.notes && (
             <ul>
               {tool.notes.map((n) => (
@@ -178,6 +189,8 @@ function ToolView({ tool }: { tool: ToolDef }) {
             計算結果は設計検討の目安です。最終的な判断は最新の法令・規格・メーカー資料に基づき、設計者の責任で行ってください。
           </p>
         </section>
+
+        <BeginnerGuide doc={tool.beginner} />
       </div>
     </>
   );

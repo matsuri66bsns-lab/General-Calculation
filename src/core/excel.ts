@@ -1,4 +1,4 @@
-import type { CalcResult, ToolDef } from './types';
+import type { CalcResult, ToolDef, ToolDoc } from './types';
 import { COLUMNS, HEADER_ROW, layoutRows, VALUE_COL } from './layout';
 import { excelNumFmt } from './format';
 import { exprSymbolic } from './formula';
@@ -24,7 +24,7 @@ function fileStamp(d: Date) {
  * 入力値は値として、計算結果は Excel の関数として書き込むので、
  * Excel 上で入力値（黄色のセル）を変えると結果も再計算される。
  */
-export async function exportExcel(tool: ToolDef, result: CalcResult): Promise<void> {
+export async function exportExcel(tool: ToolDef, result: CalcResult, doc?: ToolDoc): Promise<void> {
   // exceljs は大きいので、出力するときにだけ読み込む
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
@@ -116,6 +116,12 @@ export async function exportExcel(tool: ToolDef, result: CalcResult): Promise<vo
     r++;
   };
   addBlock('注意', result.warnings);
+  if (doc) {
+    addBlock(
+      '記号の説明',
+      doc.symbols.map((d) => `${d.symbol}：${d.meaning}${d.unit && d.unit !== '—' ? `［${d.unit}］` : ''}（${d.origin}）`),
+    );
+  }
   addBlock('参考規格・文献', tool.references);
   addBlock('免責', ['本計算書は設計検討の目安です。最終的な判断は最新の法令・規格・メーカー資料に基づき、設計者の責任で行ってください。']);
 

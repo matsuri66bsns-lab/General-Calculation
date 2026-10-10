@@ -1,6 +1,7 @@
 import type { ToolDef } from '../core/types';
 import { SheetBuilder, stepUp, stepUpFormula } from '../core/sheet';
 import { num, str } from '../core/values';
+import { el01Beginner, el01Doc } from './docs/el-01';
 
 /** 配電方式ごとの簡易式の係数（内線規程 資料） */
 const SYSTEMS: Record<string, { label: string; K: number; note: string }> = {
@@ -80,6 +81,8 @@ export const voltageDrop: ToolDef = {
     '簡易式 e = K × L × I ÷ (1000 × A) は、力率1、導体温度を考慮しない近似式です。太い電線や力率の低い負荷では、インピーダンスを用いた計算で確認してください。',
     '電線サイズは電圧降下だけで決まりません。許容電流、遮断器との協調、短絡強度も確認してください。',
   ],
+  doc: el01Doc,
+  beginner: el01Beginner,
   build(v) {
     const sys = SYSTEMS[str(v, 'sys')];
     const V = num(v, 'V');

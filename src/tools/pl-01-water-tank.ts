@@ -1,6 +1,7 @@
 import type { ToolDef } from '../core/types';
 import { SheetBuilder } from '../core/sheet';
 import { num, str } from '../core/values';
+import { pl01Beginner, pl01Doc } from './docs/pl-01';
 
 const USE_LABEL: Record<string, string> = {
   custom: '任意入力',
@@ -99,6 +100,8 @@ export const waterTank: ToolDef = {
     '揚水ポンプ吐出量は時間最大予想給水量を基準にしています。',
     '水槽の実容量は、有効容量に加えて満水面〜天井、底部の死水分を見込んで選定してください。',
   ],
+  doc: pl01Doc,
+  beginner: pl01Beginner,
   build(v) {
     const N = num(v, 'N');
     const q = num(v, 'q');

@@ -1,6 +1,7 @@
 import type { RawValues, ToolDef } from '../core/types';
 import { SheetBuilder } from '../core/sheet';
 import { num, str } from '../core/values';
+import { hv01Beginner, hv01Doc } from './docs/hv-01';
 import { CalcError } from '../core/errors';
 
 const METHOD_LABEL: Record<string, string> = {
@@ -162,6 +163,8 @@ export const ventilation: ToolDef = {
     'CO₂濃度基準法は定常状態のザイデル式です。外気濃度は地域・時期で異なるため実況に合わせてください。',
     '火気使用室は V = N × K × Q（昭和45年建告第1826号）です。フードの形状・寸法の要件は告示本文を確認してください。',
   ],
+  doc: hv01Doc,
+  beginner: hv01Beginner,
   build(v) {
     const s = new SheetBuilder();
     const method = str(v, 'method');

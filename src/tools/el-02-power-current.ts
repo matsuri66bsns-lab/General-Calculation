@@ -1,6 +1,7 @@
 import type { RawValues, ToolDef } from '../core/types';
 import { SheetBuilder } from '../core/sheet';
 import { num, str } from '../core/values';
+import { el02Beginner, el02Doc } from './docs/el-02';
 
 const SYS_LABEL: Record<string, string> = { dc: '直流', '1p': '単相交流', '3p': '三相交流' };
 const notDc = (v: RawValues) => v.sys !== 'dc';
@@ -83,6 +84,8 @@ export const powerCurrent: ToolDef = {
     '三相の電圧は線間電圧、電流は線電流です。',
     '電動機の実際の電流は、極数・メーカーによって異なります。分岐回路の設計には内線規程やメーカーの定格電流を用いてください。',
   ],
+  doc: el02Doc,
+  beginner: el02Beginner,
   build(v) {
     const sysKey = str(v, 'sys');
     const isDc = sysKey === 'dc';
