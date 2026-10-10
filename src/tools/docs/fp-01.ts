@@ -28,7 +28,7 @@ export function fp01Doc(v: Values): ToolDoc {
     ],
     symbols: [
       { symbol: 'p', origin: 'pressure（圧力）の頭文字。本サイトの表記', meaning: 'ノズル先端の放水圧力の規定値（この値以上が必要）', unit: 'MPa' },
-      { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用', meaning: '消火栓1個当たりの放水量の規定値（この値以上が必要）', unit: 'L/min' },
+      { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用記号', meaning: '消火栓1個当たりの放水量の規定値（この値以上が必要）', unit: 'L/min' },
       { symbol: 'w', origin: 'water（水）の頭文字。本サイトの表記', meaning: '消火栓1個当たりの水源水量', unit: 'm³' },
       { symbol: 'qp', origin: 'q に p（pump：ポンプ）を添えた本サイトの表記', meaning: '消火栓1個当たりのポンプ吐出量', unit: 'L/min' },
       { symbol: 'N', origin: 'Number（数）の頭文字', meaning: '消火栓の設置個数が最も多い階の個数', unit: '個' },
