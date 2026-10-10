@@ -1,63 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { HyperFormula } from 'hyperformula';
 import { TOOLS, findToolById, searchTools } from '../tools/registry';
-import { layoutRows } from '../core/layout';
 import { parseValues } from '../core/values';
-import { placeholders } from '../core/formula';
 import { stepUp, stepUpFormula } from '../core/sheet';
 import { QUANTITIES } from '../tools/cm-01-unit-convert';
-import type { CalcResult, RawValues, ToolDef, Values } from '../core/types';
-
-function run(tool: ToolDef, overrides: RawValues = {}): CalcResult {
-  return runWithValues(tool, overrides).result;
-}
-
-function runWithValues(tool: ToolDef, overrides: RawValues = {}): { result: CalcResult; values: Values } {
-  const raw = { ...tool.defaults, ...overrides };
-  // select の apply を反映（画面で選んだときと同じ挙動にする）
-  for (const f of tool.fields) {
-    if (f.type === 'select' && overrides[f.key] !== undefined) {
-      const opt = f.options.find((o) => o.value === overrides[f.key]);
-      Object.assign(raw, opt?.apply ?? {}, overrides);
-    }
-  }
-  const { values, errors } = parseValues(tool.fields, raw);
-  expect(errors).toEqual({});
-  return { result: tool.build(values), values };
-}
-
-function value(result: CalcResult, key: string) {
-  const row = result.rows.find((r) => r.kind !== 'section' && r.key === key);
-  if (!row || row.kind === 'section') throw new Error(`no row ${key}`);
-  return row.value;
-}
-
-/**
- * Excel に出力するのと同じ配置でシートを組み、式を Excel 互換の計算エンジンで評価して、
- * 画面（JavaScript）の計算値と一致することを確かめる。
- */
-function expectExcelMatches(result: CalcResult) {
-  const laid = layoutRows(result.rows);
-  const last = Math.max(...laid.map((l) => l.excelRow));
-  const grid: (string | number | null)[][] = Array.from({ length: last }, () => [null, null, null]);
-  for (const l of laid) {
-    if (l.row.kind === 'input') grid[l.excelRow - 1][2] = l.row.value;
-    if (l.row.kind === 'calc') grid[l.excelRow - 1][2] = `=${l.formula}`;
-  }
-  const hf = HyperFormula.buildFromArray(grid, { licenseKey: 'gpl-v3', precisionRounding: 12 });
-  for (const l of laid) {
-    if (l.row.kind !== 'calc') continue;
-    const got = hf.getCellValue({ sheet: 0, row: l.excelRow - 1, col: 2 });
-    const want = l.row.value;
-    if (typeof want === 'number') {
-      expect(typeof got, `${l.row.key}: ${l.formula} → ${JSON.stringify(got)}`).toBe('number');
-      expect(got as number).toBeCloseTo(want, Math.max(0, 9 - Math.ceil(Math.log10(Math.abs(want) + 1))));
-    } else {
-      expect(got, `${l.row.key}: ${l.formula}`).toBe(want);
-    }
-  }
-  hf.destroy();
-}
+import { checkTool, expectExcelMatches, run, value } from './helpers';
 
 describe('全ツール共通', () => {
   it('ID と slug が重複しない', () => {
@@ -65,70 +11,8 @@ describe('全ツール共通', () => {
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
   });
 
-  it('既定値で計算でき、Excel 式が画面の値と一致する', () => {
-    for (const t of TOOLS) expectExcelMatches(run(t));
-  });
-
-  it('式の {key} は先に定義された行だけを参照する', () => {
-    for (const t of TOOLS) {
-      const seen = new Set<string>();
-      for (const r of run(t).rows) {
-        if (r.kind === 'section') continue;
-        if (r.kind === 'calc') {
-          for (const k of [...placeholders(r.formula), ...placeholders(r.expr)]) {
-            expect(seen.has(k), `${t.id} ${r.key} → ${k}`).toBe(true);
-          }
-        }
-        seen.add(r.key);
-      }
-    }
-  });
-
-  it('ハイライト指定のキーが存在する', () => {
-    for (const t of TOOLS) {
-      const res = run(t);
-      for (const k of res.highlights) expect(() => value(res, k)).not.toThrow();
-    }
-  });
-
-  it('計算書に出る記号は、すべて記号の説明（何の略か・意味）に載っている', () => {
-    for (const t of TOOLS) {
-      const cases: RawValues[] = [{}];
-      for (const f of t.fields) if (f.type === 'select') for (const o of f.options) cases.push({ [f.key]: o.value });
-      for (const c of cases) {
-        const { result, values } = runWithValues(t, c);
-        const doc = t.doc(values);
-        const documented = new Set(doc.symbols.map((d) => d.symbol));
-        for (const r of result.rows) {
-          if (r.kind === 'section' || !r.symbol) continue;
-          expect(documented.has(r.symbol), `${t.id} ${JSON.stringify(c)}：記号 ${r.symbol} の説明がない`).toBe(true);
-        }
-        for (const d of doc.symbols) {
-          expect(d.origin.length, `${t.id} ${d.symbol} の由来`).toBeGreaterThan(0);
-          expect(d.meaning.length, `${t.id} ${d.symbol} の意味`).toBeGreaterThan(0);
-        }
-        expect(doc.formulas.length).toBeGreaterThan(0);
-      }
-    }
-  });
-
-  it('初学者向けの解説の4項目がそろっている', () => {
-    for (const t of TOOLS) {
-      const b = t.beginner;
-      expect(b.purpose.length, t.id).toBeGreaterThan(0);
-      expect(b.terms.length, t.id).toBeGreaterThan(0);
-      expect(b.example.steps.length, t.id).toBeGreaterThan(0);
-      expect(b.pitfalls.length, t.id).toBeGreaterThan(0);
-    }
-  });
-
-  it('select のすべての選択肢で計算できる', () => {
-    for (const t of TOOLS) {
-      for (const f of t.fields) {
-        if (f.type !== 'select') continue;
-        for (const o of f.options) expectExcelMatches(run(t, { [f.key]: o.value }));
-      }
-    }
+  it.each(TOOLS.map((t) => [t.id, t] as const))('%s：計算・Excel 式・記号の説明・初学者向け解説の共通検査', (_id, t) => {
+    checkTool(t);
   });
 });
 

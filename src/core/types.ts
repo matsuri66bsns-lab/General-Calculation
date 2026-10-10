@@ -8,11 +8,11 @@
  *   - formula : Excel 用の式。{key} はセル番地に置き換えて出力する
  */
 
-export type CategoryId = 'hvac' | 'plumbing' | 'electrical' | 'common';
+export type CategoryId = 'hvac' | 'plumbing' | 'electrical' | 'fire' | 'common';
 
 export interface Category {
   id: CategoryId;
-  /** ツールIDの接頭辞（HV, PL, EL, CM） */
+  /** ツールIDの接頭辞（HV, PL, EL, FP, CM） */
   prefix: string;
   name: string;
   description: string;

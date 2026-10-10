@@ -38,6 +38,8 @@
   --tag-common-bg: #5a6265;
   --tag-common-fg: #ffffff;
   --tag-common-bd: #5a6265;
+  --tag-fire-bg: #c8322a;
+  --tag-fire-fg: #ffffff;
 
   /* 書体は Noto Sans JP で統一し、ツールID（XX-01）だけ等幅の Noto Sans Mono にする */
   --f-body: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
@@ -84,6 +86,8 @@
   --tag-common-bg: #a2a9ab;
   --tag-common-fg: #111414;
   --tag-common-bd: #a2a9ab;
+  --tag-fire-bg: #ff7b70;
+  --tag-fire-fg: #2a0705;
 
   color-scheme: dark;
 }
@@ -293,6 +297,9 @@ kbd {
 }
 .m-common {
   background: var(--tag-common-bg);
+}
+.m-fire {
+  background: var(--tag-fire-bg);
 }
 
 .side__search {
@@ -762,6 +769,10 @@ kbd {
 .tag--common {
   background: var(--tag-common-bg);
   color: var(--tag-common-fg);
+}
+.tag--fire {
+  background: var(--tag-fire-bg);
+  color: var(--tag-fire-fg);
 }
 
 /* =========================================================
