@@ -60,7 +60,7 @@ export const pipeVelocity: ToolDef = {
       min: 0,
       exclusiveMin: true,
       visible: isMethod('d'),
-      help: '目安として、給水管は 2.0 m/s 以下とすることが多いです（ウォーターハンマーや騒音を抑えるため）。案件の設計基準を確認してください。',
+      help: 'ウォーターハンマーや騒音を抑えるため、給水管は 2.0 m/s 以下を目安とすることが多いです。案件の設計基準を確認してください。',
       suggestions: [
         { label: '1.0', value: 1 },
         { label: '1.5', value: 1.5 },

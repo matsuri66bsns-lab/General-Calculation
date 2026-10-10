@@ -41,7 +41,7 @@ export async function exportExcel(tool: ToolDef, result: CalcResult, doc?: ToolD
   ws.getCell('A1').font = { bold: true, size: 14, color: { argb: COLOR.title } };
   ws.getCell('A2').value = `作成日時：${new Date().toLocaleString('ja-JP')}`;
   ws.getCell('A2').font = { size: 9, color: { argb: COLOR.sub } };
-  ws.getCell('A3').value = '黄色のセルは入力値です。値を変えると計算結果が再計算されます。';
+  ws.getCell('A3').value = '黄色のセルは入力値です。値を変えると再計算されます。';
   ws.getCell('A3').font = { size: 9, color: { argb: COLOR.sub } };
 
   const header = ws.getRow(HEADER_ROW);
