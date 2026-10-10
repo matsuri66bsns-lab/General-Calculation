@@ -1,0 +1,33 @@
+const PATHS: Record<string, string> = {
+  search: 'M10.5 3a7.5 7.5 0 0 1 5.96 12.06l4.24 4.24-1.4 1.4-4.24-4.24A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z',
+  star: 'M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 5.9L12 16.8l-5.3 2.8 1.1-5.9-4.4-4.2 6-.8L12 3.2Z',
+  moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z',
+  sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0-5 1 3h-2l1-3Zm0 20-1-3h2l-1 3ZM2 12l3-1v2l-3-1Zm20 0-3 1v-2l3 1ZM4.9 4.9l2.8 1.4-1.4 1.4-1.4-2.8Zm14.2 14.2-2.8-1.4 1.4-1.4 1.4 2.8Zm0-14.2-1.4 2.8-1.4-1.4 2.8-1.4ZM4.9 19.1l1.4-2.8 1.4 1.4-2.8 1.4Z',
+  download: 'M11 3h2v9.2l3.3-3.3 1.4 1.4L12 16l-5.7-5.7 1.4-1.4L11 12.2V3ZM4 18h16v2H4v-2Z',
+  print: 'M7 3h10v5H7V3Zm-3 6h16a1 1 0 0 1 1 1v7h-4v4H7v-4H3v-7a1 1 0 0 1 1-1Zm5 7v3h6v-3H9Z',
+  reset: 'M12 4a8 8 0 1 1-7.4 5h2.2A6 6 0 1 0 12 6v3L7.5 5 12 1v3Z',
+  chevron: 'M9 5l7 7-7 7-1.4-1.4 5.6-5.6-5.6-5.6L9 5Z',
+  close: 'M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z',
+  fan: 'M12 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm1-8c4 0 5 3 3 6l-2 2.3A3.5 3.5 0 0 0 12 9.6V2.1L13 2Zm9 11c0 4-3 5-6 3l-2.3-2a3.5 3.5 0 0 0 .7-2h7.5l.1 1ZM11 22c-4 0-5-3-3-6l2-2.3c.5.3 1.2.6 2 .7V22h-1ZM2 11c0-4 3-5 6-3l2.3 2c-.3.5-.6 1.2-.7 2H2.1L2 11Z',
+  drop: 'M12 2.5s6.5 7.2 6.5 12a6.5 6.5 0 1 1-13 0c0-4.8 6.5-12 6.5-12Z',
+  bolt: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z',
+  ruler: 'M3 16.5 16.5 3 21 7.5 7.5 21 3 16.5Zm4.5-1.4 1.4 1.4 1.1-1.1-1.4-1.4-1.1 1.1Zm3-3 1.4 1.4 1.1-1.1-1.4-1.4-1.1 1.1Zm3-3 1.4 1.4 1.1-1.1-1.4-1.4-1.1 1.1Z',
+  clock: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm1 3v4.6l3.2 3.2-1.4 1.4-3.8-3.8V7h2Z',
+};
+
+export type IconName = keyof typeof PATHS;
+
+export function Icon({ name, size = 18, className }: { name: IconName; size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d={PATHS[name]} />
+    </svg>
+  );
+}
+
+export const CATEGORY_ICON: Record<string, IconName> = {
+  hvac: 'fan',
+  plumbing: 'drop',
+  electrical: 'bolt',
+  common: 'ruler',
+};
