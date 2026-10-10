@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchTools } from '../tools/registry';
-import { categoryOf } from '../tools/categories';
-import { CATEGORY_ICON, Icon } from './Icon';
+import { Icon } from './Icon';
+import { CategoryTag } from './CategoryTag';
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [q, setQ] = useState('');
@@ -66,16 +66,13 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
               key={t.id}
               role="option"
               aria-selected={i === active}
-              className={`dialog__item cat-${t.category} ${i === active ? 'is-active' : ''}`}
+              className={`dialog__item ${i === active ? 'is-active' : ''}`}
               onMouseEnter={() => setActive(i)}
               onClick={() => go(t.slug)}
             >
-              <span className="tool-card__icon">
-                <Icon name={CATEGORY_ICON[t.category]} size={16} />
-              </span>
-              <span className="dialog__id">{t.id}</span>
+              <span className="dialog__id mono">{t.id}</span>
               <span className="dialog__title">{t.title}</span>
-              <span className="dialog__cat">{categoryOf(t.category).name}</span>
+              <CategoryTag id={t.category} size="sm" />
             </li>
           ))}
         </ul>

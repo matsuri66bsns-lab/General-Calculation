@@ -1,101 +1,95 @@
-import { useSearchParams, Link } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CATEGORIES } from '../tools/categories';
-import { TOOLS, findToolById, toolsIn } from '../tools/registry';
-import { ToolCard } from '../components/ToolCard';
-import { CATEGORY_ICON, Icon } from '../components/Icon';
+import { TOOLS, toolsIn } from '../tools/registry';
+import { ToolTable } from '../components/ToolTable';
 import { useFavorites, useHistory } from '../core/storage';
+import { useStatusBar } from '../core/status';
 import type { CategoryId } from '../core/types';
+
+type Filter = 'all' | 'fav' | 'recent' | CategoryId;
 
 export function Home() {
   const [params, setParams] = useSearchParams();
-  const cat = params.get('cat') as CategoryId | null;
-  const current = CATEGORIES.find((c) => c.id === cat);
-  const list = current ? toolsIn(current.id) : TOOLS;
+  const filter = (params.get('cat') ?? params.get('f') ?? 'all') as Filter;
   const { favorites } = useFavorites();
   const [history] = useHistory();
-  const recent = history.map((h) => findToolById(h.id)).filter((t) => t !== undefined).slice(0, 4);
-  const favTools = favorites.map((id) => findToolById(id)).filter((t) => t !== undefined);
+  const usedAt = useMemo(() => Object.fromEntries(history.map((h) => [h.id, h.at])), [history]);
+
+  const list = useMemo(() => {
+    if (filter === 'fav') return TOOLS.filter((t) => favorites.includes(t.id));
+    if (filter === 'recent') return history.map((h) => TOOLS.find((t) => t.id === h.id)).filter((t) => t !== undefined);
+    if (CATEGORIES.some((c) => c.id === filter)) return toolsIn(filter as CategoryId);
+    return TOOLS;
+  }, [filter, favorites, history]);
+
+  const current = CATEGORIES.find((c) => c.id === filter);
+  useStatusBar([{ text: `${list.length} 件を表示` }, { text: 'Ctrl+K（⌘K）で検索' }]);
+
+  const setFilter = (f: Filter) => {
+    if (f === 'all') setParams({});
+    else if (f === 'fav' || f === 'recent') setParams({ f });
+    else setParams({ cat: f });
+  };
 
   return (
-    <div className="container">
-      <section className="hero">
-        <h1>
-          建築設備の計算を、
-          <br className="sp-only" />
-          ブラウザだけで。
-        </h1>
-        <p>空調・換気、給排水衛生、電気設備の計算ツール集。計算根拠を表示し、関数入りの Excel 計算書として出力できます。</p>
-      </section>
-
-      {favTools.length > 0 && !current && (
-        <section className="section">
-          <div className="section__head">
-            <h2>
-              <Icon name="star" /> お気に入り
-            </h2>
+    <>
+      <section className="band band--hero">
+        <div className="band__inner hero">
+          <div>
+            <h1>設備の計算を、系統ごとに。</h1>
+            <p>空調・給排水・電気の設計計算をブラウザだけで。計算根拠を表示し、関数入りの Excel 計算書として出力できます。</p>
           </div>
-          <div className="grid">
-            {favTools.map((t) => (
-              <ToolCard key={t.id} tool={t} />
+          <div className="pipes" role="group" aria-label="分類で絞り込む">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`pipe ${filter === c.id ? 'is-on' : ''}`}
+                aria-pressed={filter === c.id}
+                onClick={() => setFilter(filter === c.id ? 'all' : c.id)}
+                title={`JIS Z 9102 の識別色：${c.ident}`}
+              >
+                <span className={`pipe__label tag--${c.id}`}>{c.name}</span>
+                <span className="pipe__flow mono">{toolsIn(c.id).length} tools →</span>
+              </button>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      {recent.length > 0 && !current && (
-        <section className="section">
-          <div className="section__head">
-            <h2>
-              <Icon name="clock" /> 最近使ったツール
-            </h2>
-            <Link to="/history" className="link-more">
-              すべて見る <Icon name="chevron" size={14} />
-            </Link>
-          </div>
-          <div className="recent">
-            {recent.map((t) => (
-              <Link key={t.id} to={`/tools/${t.slug}`} className={`recent__item cat-${t.category}`}>
-                <span className="tool-card__icon">
-                  <Icon name={CATEGORY_ICON[t.category]} size={16} />
-                </span>
-                <span className="recent__id">{t.id}</span>
-                <span>{t.title}</span>
-              </Link>
+      <div className="page">
+        <div className="toolbar">
+          <h2>{current ? current.name : filter === 'fav' ? 'お気に入り' : filter === 'recent' ? '最近使ったツール' : 'すべてのツール'}</h2>
+          <div className="chips" role="group" aria-label="表示の切り替え">
+            {(
+              [
+                ['all', 'すべて'],
+                ['recent', '最近使った'],
+                ['fav', 'お気に入り'],
+              ] as const
+            ).map(([f, label]) => (
+              <button key={f} type="button" className={`chip ${filter === f ? 'is-on' : ''}`} aria-pressed={filter === f} onClick={() => setFilter(f)}>
+                {label}
+              </button>
             ))}
           </div>
-        </section>
-      )}
-
-      <section className="section">
-        <div className="section__head">
-          <h2>{current ? current.name : 'すべての計算'}</h2>
-          <span className="muted">{list.length} 件</span>
         </div>
-        <div className="tabs" role="tablist" aria-label="カテゴリ">
-          <button role="tab" aria-selected={!current} className={!current ? 'is-on' : ''} onClick={() => setParams({})}>
-            すべて <span className="tabs__count">{TOOLS.length}</span>
-          </button>
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              role="tab"
-              aria-selected={current?.id === c.id}
-              className={`cat-${c.id} ${current?.id === c.id ? 'is-on' : ''}`}
-              onClick={() => setParams({ cat: c.id })}
-            >
-              <Icon name={CATEGORY_ICON[c.id]} size={14} />
-              {c.name} <span className="tabs__count">{toolsIn(c.id).length}</span>
-            </button>
-          ))}
-        </div>
-        {current && <p className="muted section__desc">{current.description}</p>}
-        <div className="grid">
-          {list.map((t) => (
-            <ToolCard key={t.id} tool={t} />
-          ))}
-        </div>
-        {list.length === 0 && <p className="empty">このカテゴリのツールは準備中です。</p>}
-      </section>
-    </div>
+        {current && <p className="muted lead">{current.description}</p>}
+        {list.length > 0 ? (
+          <div className="panel panel--flush">
+            <ToolTable tools={list} usedAt={usedAt} />
+          </div>
+        ) : (
+          <p className="empty">
+            {filter === 'fav'
+              ? '一覧の ☆ を押すと、お気に入りに追加されます。'
+              : filter === 'recent'
+                ? 'まだ使ったツールはありません。'
+                : 'この分類のツールは準備中です。'}
+          </p>
+        )}
+      </div>
+    </>
   );
 }

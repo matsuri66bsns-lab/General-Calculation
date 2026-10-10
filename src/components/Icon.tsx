@@ -12,6 +12,12 @@ const PATHS: Record<string, string> = {
   drop: 'M12 2.5s6.5 7.2 6.5 12a6.5 6.5 0 1 1-13 0c0-4.8 6.5-12 6.5-12Z',
   bolt: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z',
   ruler: 'M3 16.5 16.5 3 21 7.5 7.5 21 3 16.5Zm4.5-1.4 1.4 1.4 1.1-1.1-1.4-1.4-1.1 1.1Zm3-3 1.4 1.4 1.1-1.1-1.4-1.4-1.1 1.1Zm3-3 1.4 1.4 1.1-1.1-1.4-1.4-1.1 1.1Z',
+ menu: 'M3 6h18v2H3V6Zm0 5h18v2H3v-2Zm0 5h18v2H3v-2Z',
+  list: 'M4 5h2v2H4V5Zm4 0h12v2H8V5ZM4 11h2v2H4v-2Zm4 0h12v2H8v-2Zm-4 6h2v2H4v-2Zm4 0h12v2H8v-2Z',
+  info: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-1 8v7h2v-7h-2Zm0-3v2h2V7h-2Z',
+  x: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-3.3 5.3L7.3 8.7 10.6 12l-3.3 3.3 1.4 1.4 3.3-3.3 3.3 3.3 1.4-1.4-3.3-3.3 3.3-3.3-1.4-1.4-3.3 3.3-3.3-3.3Z',
+  check: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm4.3 6.3-5.8 5.8-2.8-2.8-1.4 1.4 4.2 4.2 7.2-7.2-1.4-1.4Z',
+  warn: 'M12 2 1 21h22L12 2Zm-1 7h2v6h-2V9Zm0 8h2v2h-2v-2Z',
   clock: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm1 3v4.6l3.2 3.2-1.4 1.4-3.8-3.8V7h2Z',
 };
 
@@ -24,10 +30,3 @@ export function Icon({ name, size = 18, className }: { name: IconName; size?: nu
     </svg>
   );
 }
-
-export const CATEGORY_ICON: Record<string, IconName> = {
-  hvac: 'fan',
-  plumbing: 'drop',
-  electrical: 'bolt',
-  common: 'ruler',
-};

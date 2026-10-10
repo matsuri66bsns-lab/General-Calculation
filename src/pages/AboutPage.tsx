@@ -1,10 +1,14 @@
 import { SITE_NAME } from '../components/Layout';
+import { useStatusBar } from '../core/status';
 
 export function AboutPage() {
+  useStatusBar([]);
   return (
-    <div className="container narrow">
-      <h1 className="page-title">このサイトについて</h1>
-      <section className="card section prose">
+    <div className="page page--narrow">
+      <header className="page-head">
+        <h1>このサイトについて</h1>
+      </header>
+      <section className="panel prose">
         <h2>{SITE_NAME}とは</h2>
         <p>
           建築設備（空調・換気、給排水衛生、電気）の設計でよく使う計算を、ブラウザだけで行えるツール集です。インストールや会員登録は不要で、入力した値は端末の外に送信されません。
@@ -14,7 +18,8 @@ export function AboutPage() {
           <li>計算根拠の表示：計算式と代入値を並べて表示します。</li>
           <li>Excel 出力：計算式を Excel の関数として書き込んだ計算書（.xlsx）を出力します。黄色の入力セルを変えると Excel 上で再計算されます。</li>
           <li>印刷：計算結果と計算根拠を A4 の計算書として印刷・PDF 保存できます。</li>
-          <li>検索（Ctrl / ⌘ + K）、カテゴリ絞り込み、閲覧履歴、お気に入り、ダークモード。</li>
+          <li>検索（Ctrl / ⌘ + K）、分類での絞り込み、複数ツールのタブ、閲覧履歴、お気に入り、ダークモード。</li>
+          <li>分類の色は、配管の識別表示（JIS Z 9102）の識別色にならっています。空調は空気（白）、給排水は水（青）、電気は電気（うすい黄赤）です。</li>
         </ul>
         <h2>免責事項</h2>
         <p>

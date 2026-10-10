@@ -16,6 +16,8 @@ export interface Category {
   prefix: string;
   name: string;
   description: string;
+  /** JIS Z 9102 の識別色の意味（分類ラベルの色の説明） */
+  ident: string;
 }
 
 /** フォームの生の入力値。編集途中の "0." なども保持するため文字列で持つ */

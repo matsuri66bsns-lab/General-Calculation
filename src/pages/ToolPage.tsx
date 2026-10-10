@@ -4,11 +4,15 @@ import { findTool } from '../tools/registry';
 import { categoryOf } from '../tools/categories';
 import { parseValues } from '../core/values';
 import { recordVisit, useFavorites, useStored } from '../core/storage';
+import { openTabStored } from '../core/tabs';
+import { useStatusBar } from '../core/status';
 import { CalcError } from '../core/errors';
 import type { CalcResult, RawValues, ToolDef } from '../core/types';
 import { FieldList } from '../components/Fields';
 import { CalcTable, Highlights, Warnings } from '../components/ResultView';
+import { CategoryTag } from '../components/CategoryTag';
 import { Icon } from '../components/Icon';
+import { SITE_NAME } from '../components/Sidebar';
 import { NotFound } from './NotFound';
 
 export function ToolPage() {
@@ -30,9 +34,10 @@ function ToolView({ tool }: { tool: ToolDef }) {
 
   useEffect(() => {
     recordVisit(tool.id);
-    document.title = `${tool.id} ${tool.title}｜設備計算ラボ`;
+    openTabStored(tool.id);
+    document.title = `${tool.id} ${tool.title}｜${SITE_NAME}`;
     return () => {
-      document.title = '設備計算ラボ';
+      document.title = SITE_NAME;
     };
   }, [tool]);
 
@@ -47,6 +52,12 @@ function ToolView({ tool }: { tool: ToolDef }) {
     }
   }, [tool, raw]);
 
+  useStatusBar(
+    result
+      ? [{ text: '自動計算', tone: 'ok' }, { text: `根拠：${tool.references[0]}` }, { text: '入力は保存済み' }]
+      : [{ text: '入力を確認してください', tone: 'ng' }, { text: `根拠：${tool.references[0]}` }],
+  );
+
   const onExport = async () => {
     if (!result) return;
     setExporting(true);
@@ -56,7 +67,7 @@ function ToolView({ tool }: { tool: ToolDef }) {
       await exportExcel(tool, result);
     } catch (e) {
       console.error(e);
-      setExportError('Excel ファイルを作成できませんでした。時間をおいて再度お試しください。');
+      setExportError('Excel ファイルを作成できませんでした。時間をおいて、もう一度お試しください。');
     } finally {
       setExporting(false);
     }
@@ -66,102 +77,105 @@ function ToolView({ tool }: { tool: ToolDef }) {
   const printedAt = new Date().toLocaleString('ja-JP');
 
   return (
-    <div className="container tool">
-      <nav className="breadcrumb no-print" aria-label="パンくず">
-        <Link to="/">計算一覧</Link>
-        <Icon name="chevron" size={12} />
-        <Link to={`/?cat=${cat.id}`}>{cat.name}</Link>
-        <Icon name="chevron" size={12} />
-        <span aria-current="page">{tool.id}</span>
-      </nav>
-
-      <header className={`tool__header cat-${tool.category}`}>
-        <div>
-          <div className="tool__id">
-            {tool.id}　<span className="muted">{cat.name}</span>
+    <>
+      <section className="band">
+        <div className="band__inner tool-band">
+          <div className="tool-band__text">
+            <nav className="crumb no-print" aria-label="パンくず">
+              <Link to="/">すべてのツール</Link>
+              <Icon name="chevron" size={12} />
+              <Link to={`/?cat=${cat.id}`}>{cat.name}</Link>
+            </nav>
+            <div className="tool-band__meta">
+              <CategoryTag id={tool.category} />
+              <span className="mono">{tool.id}</span>
+            </div>
+            <h1>{tool.title}</h1>
+            <p className="tool-band__summary">{tool.summary}</p>
+            <p className="print-only">作成日時：{printedAt}</p>
           </div>
-          <h1>{tool.title}</h1>
-          <p className="tool__summary">{tool.summary}</p>
-          <p className="print-only muted">作成日時：{printedAt}</p>
-        </div>
-        <div className="tool__actions no-print">
-          <button
-            type="button"
-            className={`btn btn--ghost ${fav ? 'is-on' : ''}`}
-            aria-pressed={fav}
-            onClick={() => toggle(tool.id)}
-          >
-            <Icon name="star" /> {fav ? 'お気に入り済み' : 'お気に入り'}
-          </button>
-        </div>
-      </header>
-
-      <div className="tool__body">
-        <section className="card tool__inputs no-print" aria-labelledby="inputs-h">
-          <div className="card__head">
-            <h2 id="inputs-h">入力</h2>
-            <button type="button" className="btn btn--text" onClick={() => setSaved(tool.defaults)}>
-              <Icon name="reset" size={16} /> 初期値に戻す
+          <div className="tool-band__actions no-print">
+            <button type="button" className="btn btn--inverse" onClick={onExport} disabled={!result || exporting}>
+              <Icon name="download" size={16} /> {exporting ? '作成中…' : 'Excel 出力'}
+            </button>
+            <button type="button" className="btn btn--outline-inverse" onClick={() => window.print()} disabled={!result}>
+              <Icon name="print" size={16} /> 印刷
+            </button>
+            <button
+              type="button"
+              className={`btn btn--outline-inverse btn--icon ${fav ? 'is-fav' : ''}`}
+              aria-pressed={fav}
+              aria-label={fav ? 'お気に入りから外す' : 'お気に入りに追加'}
+              title={fav ? 'お気に入りから外す' : 'お気に入りに追加'}
+              onClick={() => toggle(tool.id)}
+            >
+              <Icon name="star" size={16} />
             </button>
           </div>
-          <FieldList fields={tool.fields} values={raw} errors={errors} onChange={(patch) => setSaved({ ...raw, ...patch })} />
-        </section>
+        </div>
+      </section>
 
-        <section className="tool__results" aria-labelledby="results-h" aria-live="polite">
-          <div className="card">
-            <div className="card__head">
-              <h2 id="results-h">計算結果</h2>
-              <div className="card__actions no-print">
-                <button type="button" className="btn btn--primary" onClick={onExport} disabled={!result || exporting}>
-                  <Icon name="download" size={16} /> {exporting ? '作成中…' : 'Excel 出力'}
-                </button>
-                <button type="button" className="btn btn--ghost" onClick={() => window.print()} disabled={!result}>
-                  <Icon name="print" size={16} /> 印刷
-                </button>
-              </div>
+      <div className="page">
+        <div className="tool-cols">
+          <section className="panel no-print" aria-labelledby="inputs-h">
+            <div className="panel__head">
+              <h2 id="inputs-h">入力</h2>
+              <button type="button" className="btn btn--text" onClick={() => setSaved(tool.defaults)}>
+                <Icon name="reset" size={16} /> 初期値に戻す
+              </button>
             </div>
-            {exportError && <p className="alert alert--error">{exportError}</p>}
+            <FieldList fields={tool.fields} values={raw} errors={errors} onChange={(patch) => setSaved({ ...raw, ...patch })} />
+          </section>
+
+          <section className="panel tool-results" aria-labelledby="results-h" aria-live="polite">
+            <div className="panel__head">
+              <h2 id="results-h">計算結果</h2>
+            </div>
+            {exportError && <p className="alert">{exportError}</p>}
             {result ? (
               <>
                 <Highlights result={result} />
                 <Warnings messages={result.warnings} />
               </>
             ) : (
-              <p className="alert alert--error">{calcError ?? '入力値を確認してください。'}</p>
+              <p className="alert">
+                <Icon name="x" size={18} />
+                {calcError ?? '入力値を確認してください。赤い枠の欄に、正しい数値を入力すると計算します。'}
+              </p>
             )}
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
 
-      {result && (
-        <section className="card section" aria-labelledby="basis-h">
-          <div className="card__head">
-            <h2 id="basis-h">計算根拠</h2>
-            <span className="muted small no-print">Excel 出力では、この表の計算式が関数として入ります</span>
-          </div>
-          <CalcTable result={result} />
-        </section>
-      )}
+        {result && (
+          <section className="panel section" aria-labelledby="basis-h">
+            <div className="panel__head">
+              <h2 id="basis-h">計算根拠</h2>
+              <span className="muted small no-print">Excel 出力では、この表の計算式が関数として入ります</span>
+            </div>
+            <CalcTable result={result} />
+          </section>
+        )}
 
-      <section className="card section notes" aria-labelledby="notes-h">
-        <h2 id="notes-h">解説・注意事項</h2>
-        {tool.notes && (
+        <section className="panel section notes" aria-labelledby="notes-h">
+          <h2 id="notes-h">解説・注意事項</h2>
+          {tool.notes && (
+            <ul>
+              {tool.notes.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          )}
+          <h3>参考規格・文献</h3>
           <ul>
-            {tool.notes.map((n) => (
-              <li key={n}>{n}</li>
+            {tool.references.map((r) => (
+              <li key={r}>{r}</li>
             ))}
           </ul>
-        )}
-        <h3>参考規格・文献</h3>
-        <ul>
-          {tool.references.map((r) => (
-            <li key={r}>{r}</li>
-          ))}
-        </ul>
-        <p className="muted small">
-          計算結果は設計検討の目安です。最終的な判断は最新の法令・規格・メーカー資料に基づき、設計者の責任で行ってください。
-        </p>
-      </section>
-    </div>
+          <p className="muted small">
+            計算結果は設計検討の目安です。最終的な判断は最新の法令・規格・メーカー資料に基づき、設計者の責任で行ってください。
+          </p>
+        </section>
+      </div>
+    </>
   );
 }
