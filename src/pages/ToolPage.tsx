@@ -86,12 +86,15 @@ function ToolView({ tool }: { tool: ToolDef }) {
               <Icon name="chevron" size={12} />
               <Link to={`/?cat=${cat.id}`}>{cat.name}</Link>
             </nav>
-            <div className="tool-band__meta">
+            {/* 分類・ID・ツール名を1行、概要文を1行に収め、ツールによらず帯の高さを一定にする */}
+            <div className="tool-band__heading">
               <CategoryTag id={tool.category} />
               <span className="tool-id">{tool.id}</span>
+              <h1 title={tool.title}>{tool.title}</h1>
             </div>
-            <h1>{tool.title}</h1>
-            <p className="tool-band__summary">{tool.summary}</p>
+            <p className="tool-band__summary" title={tool.summary}>
+              {tool.summary}
+            </p>
             <p className="print-only">作成日時：{printedAt}</p>
           </div>
           <div className="tool-band__actions no-print">
