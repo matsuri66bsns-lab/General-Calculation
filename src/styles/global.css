@@ -1779,3 +1779,93 @@ h1.page-head {
 .pipe__label.tag--hvac::before {
   display: none;
 }
+
+/* =========================================================
+   フォント試用パネル（仮の機能。フォント決定後に削除する）
+   ========================================================= */
+.font-trial__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--on-chrome-2);
+  font-size: 15px;
+  text-align: left;
+}
+
+.font-trial__toggle:hover {
+  background: color-mix(in srgb, var(--on-chrome) 8%, transparent);
+  color: var(--on-chrome);
+}
+
+.font-trial__aa {
+  width: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.font-trial__badge {
+  margin-left: auto;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--tag-electrical-bg);
+  color: var(--tag-electrical-fg);
+}
+
+.font-trial__panel {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 8px;
+  padding: 12px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--on-chrome) 8%, transparent);
+  font-size: 14px;
+}
+
+.font-trial__panel label {
+  color: var(--on-chrome-2);
+}
+
+.font-trial__panel select {
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 6px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--on-chrome) 45%, transparent);
+  border-radius: var(--r-sm);
+  background: var(--side);
+  color: var(--on-chrome);
+  font: inherit;
+  font-size: 15px;
+}
+
+.font-trial__sample {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--side);
+  color: var(--on-chrome);
+  font-size: 16px;
+}
+
+.font-trial__reset {
+  min-height: 36px;
+  border: 1px solid color-mix(in srgb, var(--on-chrome) 45%, transparent);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--on-chrome);
+  font-size: 14px;
+}
+
+.font-trial__note {
+  color: var(--on-chrome-2);
+  font-size: 13px;
+  line-height: 1.5;
+}

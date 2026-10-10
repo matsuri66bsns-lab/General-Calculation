@@ -4,6 +4,7 @@ import { toolsIn } from '../tools/registry';
 import { useStored } from '../core/storage';
 import type { Theme } from '../core/theme';
 import { Icon } from './Icon';
+import { FontTrial } from './FontTrial';
 
 interface Props {
   theme: Theme;
@@ -91,6 +92,7 @@ export function Sidebar({ theme, onToggleTheme, onSearch, onNavigate, isMac }: P
       </div>
 
       <div className="side__foot">
+        <FontTrial />
         <NavLink to="/about" onClick={onNavigate}>
           <Icon name="info" size={16} />
           このサイトについて
