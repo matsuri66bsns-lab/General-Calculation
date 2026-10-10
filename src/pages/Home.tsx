@@ -38,7 +38,7 @@ export function Home() {
         <div className="band__inner hero">
           <div>
             <h1>設備の計算を、系統ごとに。</h1>
-            <p>空調・給排水・電気の設計計算をブラウザだけで。計算根拠を表示し、関数入りの Excel 計算書として出力できます。</p>
+            <p>空調・給排水・電気・消防の設計計算をブラウザだけで。計算根拠を表示し、関数入りの Excel 計算書として出力できます。</p>
           </div>
           <div className="pipes" role="group" aria-label="分類で絞り込む">
             {CATEGORIES.map((c) => (

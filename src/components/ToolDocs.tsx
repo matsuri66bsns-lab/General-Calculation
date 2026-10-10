@@ -31,7 +31,7 @@ export function FormulaDoc({ doc }: { doc: ToolDoc }) {
                   {s.symbol}
                 </th>
                 <td className="symbol-table__origin">{s.origin}</td>
-                <td>{s.meaning}</td>
+                <td className="symbol-table__meaning">{s.meaning}</td>
                 <td className="symbol-table__unit">{s.unit ?? '—'}</td>
               </tr>
             ))}

@@ -1945,6 +1945,51 @@ h1.page-head {
   color: var(--text-2);
 }
 
+/* 狭い画面では1記号を1ブロックにまとめる（記号・単位 → 意味 → 由来） */
+@media (max-width: 720px) {
+  .symbol-table thead {
+    display: none;
+  }
+
+  .symbol-table tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'sym unit'
+      'meaning meaning'
+      'origin origin';
+    gap: 2px 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .symbol-table th,
+  .symbol-table td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .symbol-table__sym {
+    grid-area: sym;
+  }
+
+  .symbol-table__unit {
+    grid-area: unit;
+    align-self: center;
+    white-space: normal;
+  }
+
+  .symbol-table__meaning {
+    grid-area: meaning;
+  }
+
+  .symbol-table__origin {
+    grid-area: origin;
+    min-width: 0;
+    font-size: 14px;
+  }
+}
+
 .beginner {
   margin-top: 24px;
   border: 1px solid var(--line);
