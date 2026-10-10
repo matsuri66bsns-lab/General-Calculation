@@ -13,7 +13,7 @@ export function pl01Doc(): ToolDoc {
     ],
     symbols: [
       { symbol: 'N', origin: 'Number（数）の頭文字', meaning: '使用人員（ホテルは床数）', unit: '人' },
-      { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用', meaning: '1人1日当たりの単位給水量', unit: 'L/(人·日)' },
+      { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用記号', meaning: '1人1日当たりの単位給水量', unit: 'L/(人·日)' },
       { symbol: 'T', origin: 'Time（時間）の頭文字', meaning: '1日平均使用時間', unit: 'h' },
       { symbol: 'k₁', origin: '係数（coefficient）の慣用記号 k に番号を添えたもの', meaning: '時間最大係数（時間最大 ÷ 時間平均）', unit: '—' },
       { symbol: 'k₂', origin: '同上', meaning: '瞬時最大係数（瞬時最大 ÷ 時間平均）', unit: '—' },

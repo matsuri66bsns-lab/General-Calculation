@@ -45,7 +45,7 @@ export function hv11Doc(v: Values): ToolDoc {
 
   const symbols: SymbolDoc[] = [
     { symbol: 'L', origin: 'Length（長さ）の頭文字', meaning: '直管の長さ（最遠の機器までの往復）', unit: 'm' },
-    { symbol: 'R', origin: 'Resistance（抵抗）の頭文字。配管設計で慣用', meaning: '単位摩擦損失（配管 1 m 当たり）', unit: 'Pa/m' },
+    { symbol: 'R', origin: 'Resistance（抵抗）の頭文字。配管設計で慣用される記号', meaning: '単位摩擦損失（配管 1 m 当たり）', unit: 'Pa/m' },
   ];
   if (ratio) symbols.push({ symbol: 'k', origin: '係数（coefficient）を表す慣用記号', meaning: '局部損失の割合（直管損失に対する比）', unit: '—' });
   else symbols.push({ symbol: 'Le', origin: 'L（長さ）に e（equivalent：相当）を添えたもの', meaning: '継手・弁類の相当長の合計', unit: 'm' });

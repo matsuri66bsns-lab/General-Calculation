@@ -26,7 +26,7 @@ export function hv09Doc(): ToolDoc {
     symbols: [
       { symbol: 'Q', origin: '流量を表す慣用記号（Quantity（量）に由来するとされる）', meaning: '風量', unit: 'm³/min' },
       { symbol: 'L', origin: 'Length（長さ）の頭文字', meaning: '最も抵抗の大きい経路の直管の長さ', unit: 'm' },
-      { symbol: 'R', origin: 'Resistance（抵抗）の頭文字。ダクト設計で慣用', meaning: '単位摩擦損失（ダクト 1 m 当たり）', unit: 'Pa/m' },
+      { symbol: 'R', origin: 'Resistance（抵抗）の頭文字。ダクト設計で慣用される記号', meaning: '単位摩擦損失（ダクト 1 m 当たり）', unit: 'Pa/m' },
       { symbol: 'Σζ', origin: 'Σ（シグマ）は合計、ζ（ゼータ）は局部抵抗係数を表す慣用記号', meaning: '局部抵抗係数の合計', unit: '—' },
       { symbol: 'v', origin: 'velocity（速度）の頭文字', meaning: '局部抵抗の代表風速', unit: 'm/s' },
       { symbol: 'Pe', origin: 'P（Pressure：圧力）に e（equipment：機器）を添えた本サイトの表記', meaning: '機器抵抗の合計（フィルター・コイル・吹出口など）', unit: 'Pa' },
@@ -72,7 +72,7 @@ export const hv09Beginner: BeginnerDoc = {
     ],
   },
   pitfalls: [
-    '静圧と全圧を取り違える。カタログが静圧表示なら、全圧から吐出口の動圧を引いた静圧で比べます。',
+    '静圧と全圧を混同する。カタログが静圧表示なら、全圧から吐出口の動圧を引いた静圧で比べます。',
     '風量を m³/h のまま入れる。この計算は m³/min です（m³/h は 60 で割ります）。',
     '吸込側のダクト・ガラリ・フィルターの抵抗を入れ忘れる。送風機の前後すべての抵抗を合計します。',
     '最遠の経路ではなく平均的な経路で計算する。最も抵抗の大きい経路で静圧を決めないと、遠い吹出口で風量が不足します。',

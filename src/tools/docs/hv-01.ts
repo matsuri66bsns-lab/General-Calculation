@@ -44,7 +44,7 @@ export function hv01Doc(v: Values): ToolDoc {
         { symbol: 'C', origin: 'Concentration（濃度）の頭文字', meaning: '室内の CO₂ 許容濃度', unit: 'ppm' },
         { symbol: 'C₀', origin: 'C に添字 0（外気・基準の意）', meaning: '外気の CO₂ 濃度', unit: 'ppm' },
         S.Q,
-        { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用', meaning: '1人当たりの換気量', unit: 'm³/(h·人)' },
+        { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用記号', meaning: '1人当たりの換気量', unit: 'm³/(h·人)' },
         S.A,
         S.H,
         S.n,
@@ -99,7 +99,7 @@ export const hv01Beginner: BeginnerDoc = {
   },
   pitfalls: [
     '在室人員法の N は「人数」ではなく「1人当たりの占有面積（m²/人）」です。人数を入れると結果が大きく狂います。',
-    'm³/h と m³/min を取り違える。カタログ値と比べるときは単位をそろえます。',
+    'm³/h と m³/min を混同する。カタログ値と比べるときは単位をそろえます。',
     '換気回数の目安は法令の値ではありません。電気室など発熱のある室は、換気回数ではなく排熱量から換気量を求めます。',
     '火気使用室の Q は「燃料消費量（kW）」で、器具の能力（出力）とは異なる場合があります。器具の表示を確認します。',
   ],

@@ -12,7 +12,7 @@ const S = {
   Xt: { symbol: '%Xt', origin: '%X（パーセントリアクタンス。X は reactance の慣用記号）に t を添えた表記', meaning: '変圧器の％リアクタンス（自己容量基準）', unit: '%' },
   Rtb: { symbol: '%Rt′', origin: '%Rt にダッシュ（′）を付けた本サイトの表記', meaning: '変圧器の％抵抗（基準容量換算）', unit: '%' },
   Xtb: { symbol: '%Xt′', origin: '%Xt にダッシュ（′）を付けた本サイトの表記', meaning: '変圧器の％リアクタンス（基準容量換算）', unit: '%' },
-  r: { symbol: 'r', origin: 'resistance（抵抗）の頭文字。小文字で単位長さ当たりの値を表す慣用', meaning: 'ケーブルの 1 km 当たりの交流導体抵抗', unit: 'Ω/km' },
+  r: { symbol: 'r', origin: 'resistance（抵抗）の頭文字。小文字で単位長さ当たりの値を表す慣用記号', meaning: 'ケーブルの 1 km 当たりの交流導体抵抗', unit: 'Ω/km' },
   x: { symbol: 'x', origin: 'reactance（リアクタンス）の慣用記号 X の小文字。単位長さ当たりの値', meaning: 'ケーブルの 1 km 当たりのリアクタンス', unit: 'Ω/km' },
   L: { symbol: 'L', origin: 'Length（長さ）の頭文字', meaning: 'ケーブルのこう長（片道）', unit: 'm' },
   Rc: { symbol: 'Rc', origin: 'R（Resistance：抵抗）に c（cable：ケーブル）を添えた本サイトの表記', meaning: 'ケーブル1相分の抵抗', unit: 'mΩ' },

@@ -11,7 +11,7 @@ export function el01Doc(): ToolDoc {
     ],
     symbols: [
       { symbol: 'e', origin: '内線規程の記号（電圧降下 voltage drop を表す小文字）', meaning: '電圧降下', unit: 'V' },
-      { symbol: 'K', origin: '内線規程の記号。係数（coefficient）を表す慣用', meaning: '配電方式による係数（17.8、30.8、35.6）', unit: '—' },
+      { symbol: 'K', origin: '内線規程の記号。係数（coefficient）を表す慣用記号', meaning: '配電方式による係数（17.8、30.8、35.6）', unit: '—' },
       { symbol: 'L', origin: 'Length（長さ）の頭文字', meaning: '電線のこう長（片道の長さ）', unit: 'm' },
       { symbol: 'I', origin: 'フランス語 intensité du courant（電流の強さ）に由来する電流の慣用記号', meaning: '負荷電流', unit: 'A' },
       { symbol: 'A', origin: 'Area（面積）の頭文字', meaning: '電線の導体の断面積', unit: 'mm²' },

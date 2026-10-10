@@ -45,7 +45,7 @@ export function hv08Doc(v: Values): ToolDoc {
 
   const symbols: SymbolDoc[] = [
     { symbol: 'Q', origin: '流量を表す慣用記号（Quantity（量）に由来するとされる）', meaning: '風量', unit: 'm³/h' },
-    { symbol: 'R', origin: 'Resistance（抵抗）の頭文字。ダクト設計で慣用', meaning: '単位摩擦損失（ダクト 1 m 当たりの圧力損失）', unit: 'Pa/m' },
+    { symbol: 'R', origin: 'Resistance（抵抗）の頭文字。ダクト設計で慣用される記号', meaning: '単位摩擦損失（ダクト 1 m 当たりの圧力損失）', unit: 'Pa/m' },
     { symbol: 'ρ', origin: 'ギリシャ文字ロー。密度を表す慣用記号', meaning: '空気の密度', unit: 'kg/m³' },
     { symbol: 'ν', origin: 'ギリシャ文字ニュー。動粘性係数を表す慣用記号', meaning: '空気の動粘性係数（粘性係数 ÷ 密度）', unit: 'mm²/s' },
     { symbol: 'ε', origin: 'ギリシャ文字イプシロン。管内面の粗さを表す慣用記号', meaning: 'ダクト内面の粗さ（凹凸の高さ）', unit: 'mm' },
@@ -103,7 +103,7 @@ export const hv08Beginner: BeginnerDoc = {
   pitfalls: [
     '長方形ダクトの寸法を「断面積が円形と同じ」で決めてしまう。摩擦損失をそろえるには円形相当径を使います。',
     '単位摩擦損失を大きく取り過ぎる。ダクトは細くなりますが、風速が上がって騒音が出やすく、送風機の動力も増えます（低速ダクトの風速は一般に 15 m/s 以下が目安）。',
-    '風量の単位（m³/h と m³/min）を取り違える。この計算は m³/h です。',
+    '風量の単位（m³/h と m³/min）を混同する。この計算は m³/h です。',
     'アスペクト比を大きくし過ぎる。天井内に納めるために平たくすると、摩擦損失が増え、板の振動による騒音の原因にもなります。',
   ],
 };
