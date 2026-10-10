@@ -78,7 +78,7 @@ export function Sidebar({ theme, onToggleTheme, onSearch, onNavigate, isMac }: P
                         onClick={onNavigate}
                         className={pathname === `/tools/${t.slug}` ? 'active' : ''}
                       >
-                        <span className="mono">{t.id}</span>
+                        <span className="tool-id">{t.id}</span>
                         <span className="side__toolname">{t.title}</span>
                       </NavLink>
                     </li>

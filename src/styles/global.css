@@ -39,8 +39,10 @@
   --tag-common-fg: #ffffff;
   --tag-common-bd: #5a6265;
 
-  --f-body: 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
-  --f-num: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, Menlo, Consolas, monospace;
+  /* 書体は Noto Sans JP で統一し、ツールID（XX-01）だけ等幅の書体にする */
+  --f-body: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+  --f-num: var(--f-body);
+  --f-id: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, Menlo, Consolas, monospace;
 
   --r-sm: 6px;
   --r-md: 10px;
@@ -152,6 +154,11 @@ kbd {
   border: 1px solid currentColor;
   opacity: 0.75;
   white-space: nowrap;
+}
+
+.tool-id {
+  font-family: var(--f-id);
+  letter-spacing: 0;
 }
 
 .mono {
@@ -422,7 +429,7 @@ kbd {
   line-height: 1.4;
 }
 
-.side__tools .mono {
+.side__tools .tool-id {
   font-size: 12px;
   flex: none;
   opacity: 0.85;

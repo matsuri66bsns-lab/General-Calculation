@@ -30,7 +30,7 @@ export function TabStrip() {
         return (
           <div key={id} className={`tab ${activeId === id ? 'is-active' : ''}`}>
             <NavLink to={`/tools/${t.slug}`} className="tab__link" aria-current={activeId === id ? 'page' : undefined}>
-              <span className="mono tab__id">{t.id}</span>
+              <span className="tool-id tab__id">{t.id}</span>
               {t.title}
             </NavLink>
             <button type="button" className="tab__close" aria-label={`${t.title}のタブを閉じる`} onClick={() => onClose(id)}>

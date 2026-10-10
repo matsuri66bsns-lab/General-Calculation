@@ -59,7 +59,7 @@ export function ToolTable({ tools, usedAt }: { tools: ToolDef[]; usedAt?: Record
                     <Icon name="star" size={16} />
                   </button>
                 </td>
-                <td className="mono id-cell">{t.id}</td>
+                <td className="tool-id id-cell">{t.id}</td>
                 <td className="name-cell">
                   <Link to={`/tools/${t.slug}`} className="row-link">
                     {t.title}

@@ -70,7 +70,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
               onMouseEnter={() => setActive(i)}
               onClick={() => go(t.slug)}
             >
-              <span className="dialog__id mono">{t.id}</span>
+              <span className="dialog__id tool-id">{t.id}</span>
               <span className="dialog__title">{t.title}</span>
               <CategoryTag id={t.category} size="sm" />
             </li>

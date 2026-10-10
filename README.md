@@ -27,7 +27,8 @@
   - 本文・操作部品は 16px 以上（14px は表の見出し・注記などの例外のみ）
   - 文字と背景のコントラストは 4.5:1 以上、入力欄の枠線などは 3:1 以上（ライト・ダークとも）
   - フォーカスは黄色と黒の二重リング、判定はアイコンと文字（適合／不適合）で示す
-- 書体：Zen Kaku Gothic New（本文）、Roboto Mono（数値・ID）。Google Fonts から読み込む
+- 書体：Noto Sans JP で統一（数値は桁のそろう等幅数字）。ツールID（XX-01）だけ Roboto Mono。Google Fonts から読み込む
+  - IDの書体はサイドバー下部の「IDの書体を試す」で試用できる（仮の機能。決定後に `src/core/fonts.ts` と `src/components/FontTrial.tsx` を削除する）
 - デザイントークンは `src/styles/global.css` の先頭にまとめている
 
 ## 開発

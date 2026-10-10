@@ -88,7 +88,7 @@ function ToolView({ tool }: { tool: ToolDef }) {
             </nav>
             <div className="tool-band__meta">
               <CategoryTag id={tool.category} />
-              <span className="mono">{tool.id}</span>
+              <span className="tool-id">{tool.id}</span>
             </div>
             <h1>{tool.title}</h1>
             <p className="tool-band__summary">{tool.summary}</p>

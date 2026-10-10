@@ -1,51 +1,42 @@
 import { useEffect, useId, useState } from 'react';
-import { BODY_FONTS, DEFAULT_FONTS, NUM_FONTS, applyFonts, saveFontChoice, type FontChoice } from '../core/fonts';
+import { DEFAULT_ID_FONT, ID_FONTS, applyIdFont, saveIdFont, ID_FONT_KEY } from '../core/fonts';
 import { useStored } from '../core/storage';
 
-/** サイドバー下部のフォント試用パネル（仮の機能。フォント決定後に削除する） */
+/** サイドバー下部の、ツールIDの書体の試用パネル（仮の機能。書体の決定後に削除する） */
 export function FontTrial() {
-  const [choice] = useStored<FontChoice>('fonts', DEFAULT_FONTS);
+  const [fontId] = useStored<string>(ID_FONT_KEY, DEFAULT_ID_FONT);
   const [open, setOpen] = useState(false);
   const id = useId();
-  const current = { ...DEFAULT_FONTS, ...choice };
 
   // 別のタブで変えた場合にも反映する
-  useEffect(() => applyFonts({ body: current.body, num: current.num }), [current.body, current.num]);
+  useEffect(() => applyIdFont(fontId), [fontId]);
 
-  const isDefault = current.body === DEFAULT_FONTS.body && current.num === DEFAULT_FONTS.num;
+  const isDefault = fontId === DEFAULT_ID_FONT;
 
   return (
     <div className="font-trial">
       <button type="button" className="font-trial__toggle" aria-expanded={open} aria-controls={`${id}-panel`} onClick={() => setOpen(!open)}>
         <span aria-hidden="true" className="font-trial__aa">Aa</span>
-        フォントを試す
+        IDの書体を試す
         {!isDefault && <span className="font-trial__badge">変更中</span>}
       </button>
       {open && (
         <div id={`${id}-panel`} className="font-trial__panel">
-          <label htmlFor={`${id}-body`}>本文・操作部品</label>
-          <select id={`${id}-body`} value={current.body} onChange={(e) => saveFontChoice({ ...current, body: e.target.value })}>
-            {BODY_FONTS.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-          <label htmlFor={`${id}-num`}>数値・ID・計算式</label>
-          <select id={`${id}-num`} value={current.num} onChange={(e) => saveFontChoice({ ...current, num: e.target.value })}>
-            {NUM_FONTS.map((f) => (
+          <label htmlFor={`${id}-font`}>ツールID（XX-01）の書体</label>
+          <select id={`${id}-font`} value={fontId} onChange={(e) => saveIdFont(e.target.value)}>
+            {ID_FONTS.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.label}
               </option>
             ))}
           </select>
           <p className="font-trial__sample">
-            電圧降下 <span className="num">4.40 V</span>　<span className="mono">EL-01</span>
+            <span className="tool-id">EL-01</span>　電圧降下 4.40 V
           </p>
-          <button type="button" className="font-trial__reset" onClick={() => saveFontChoice(DEFAULT_FONTS)} disabled={isDefault}>
-            現在のフォントに戻す
+          <button type="button" className="font-trial__reset" onClick={() => saveIdFont(DEFAULT_ID_FONT)} disabled={isDefault}>
+            現在の書体に戻す
           </button>
-          <p className="font-trial__note">試用のための仮の機能です。選んだフォントはこのブラウザにだけ保存されます。</p>
+          <p className="font-trial__note">試用のための仮の機能です。本文・数値は Noto Sans JP で固定しています。選んだ書体はこのブラウザにだけ保存されます。</p>
         </div>
       )}
     </div>
