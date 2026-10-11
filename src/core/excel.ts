@@ -2,7 +2,7 @@ import type { Workbook, Worksheet, Cell, Borders, Border } from 'exceljs';
 import { isValueRow } from './types';
 import type { CalcResult, SheetTableRow, ToolDef, ToolDoc } from './types';
 import type { ExportOptions, ProjectInfo } from './project';
-import { COLUMNS, EXPR_COL, HEADER_ROW, isWideText, layoutRows, VALUE_COL, type TableLayout } from './layout';
+import { COLUMNS, columnWidth, EXPR_COL, HEADER_ROW, isWideText, layoutRows, SHEET_WIDTHS, VALUE_COL, type TableLayout } from './layout';
 import { excelNumFmt } from './format';
 import { categoryOf } from '../tools/categories';
 
@@ -308,7 +308,9 @@ function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow
   put(ws, t.headerRow, 1, 1, 'No.', { head: true, align: 'center' });
   let headLines = 1;
   row.columns.forEach((c, ci) => {
-    const exprText = c.expr ? `\n= ${c.expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => row.columns.find((x) => x.key === k)?.symbol ?? k).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => symbolOf(k))}` : '';
+    const exprBody = c.expr ? `${c.expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => row.columns.find((x) => x.key === k)?.symbol ?? k).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => symbolOf(k))}` : '';
+    // 長い式は見出しが縦に伸びるので書かない（式は計算式の解説と表の注記にある）
+    const exprText = exprBody && exprBody.length <= 24 ? `\n= ${exprBody}` : '';
     const text = `${c.label}${c.symbol ? ` ${c.symbol}` : ''}${c.unit ? `［${c.unit}］` : ''}${exprText}`;
     const ci1 = col(t.colLetters[ci]);
     const cell = put(ws, t.headerRow, ci1, ci1, text, { head: true, size: SIZE.small, align: 'center' });
@@ -325,15 +327,32 @@ function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow
       const c = row.columns[ci];
       const cell = ws.getCell(r, col(t.colLetters[ci]));
       const f = t.formulas[ri][ci];
-      cell.value = f ? { formula: f, result: v } : v;
-      setFont(cell, f ? {} : { color: COLOR.inputText });
+      const shown = t.values[ri][ci];
+      cell.value = f ? { formula: f, result: shown } : shown;
+      setFont(cell, f ? { bold: c.format === 'judge' } : { color: COLOR.inputText });
       if (!f) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR.inputBg } };
       const fmt = excelNumFmt(c.digits);
       if (fmt && typeof v === 'number') cell.numFmt = fmt;
-      cell.alignment = { horizontal: typeof v === 'number' ? 'right' : 'left', vertical: 'top', wrapText: typeof v === 'string' };
+      cell.alignment = {
+        horizontal: c.format === 'judge' ? 'center' : typeof v === 'number' ? 'right' : 'left',
+        vertical: 'top',
+        wrapText: typeof v === 'string',
+      };
       if (typeof v === 'string') lines = Math.max(lines, lineCount(v, ws.getColumn(col(t.colLetters[ci])).width ?? 8));
     });
     ws.getRow(r).height = heightFor(lines);
+  });
+  // 判定の列は、Excel 上で再計算したときにも色が変わるよう条件付き書式を付ける（印刷は白黒）
+  row.columns.forEach((c, ci) => {
+    if (c.format !== 'judge' || t.lastRow < t.firstRow) return;
+    const L = t.colLetters[ci];
+    ws.addConditionalFormatting({
+      ref: `${L}${t.firstRow}:${L}${t.lastRow}`,
+      rules: [
+        { type: 'containsText', operator: 'containsText', text: '不適合', priority: 1, style: { font: { color: { argb: COLOR.ng }, bold: true } } },
+        { type: 'containsText', operator: 'containsText', text: '適合', priority: 2, style: { font: { color: { argb: COLOR.ok }, bold: true } } },
+      ],
+    });
   });
   // 罫線：表の範囲は細線の格子、左右は計算書の外枠
   for (let r = t.headerRow; r <= Math.max(t.headerRow, t.lastRow); r++) {
@@ -351,15 +370,16 @@ function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow
 
 function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: ProjectInfo, options: ExportOptions, date: string) {
   const ws = wb.addWorksheet('計算書', { views: [{ state: 'frozen', ySplit: HEADER_ROW }] });
-  const N = COLUMNS.length;
-  ws.columns = COLUMNS.map((c) => ({ width: c.width }));
+  const N = SHEET_WIDTHS.length;
+  ws.columns = SHEET_WIDTHS.map((w) => ({ width: w }));
   pageSetup(ws, N, `1:${HEADER_ROW}`, `${tool.id} ${tool.publishedAt}版`);
   titleBlock(ws, N, 4, { category: categoryLabel(tool), title: `${tool.title}　計算書`, number: tool.id }, project, date);
   headerRow(
     ws,
     HEADER_ROW,
-    COLUMNS.map((c, i) => ({ from: i + 1, to: i + 1, text: c.header })),
+    COLUMNS.map((c) => ({ from: c.from, to: c.to, text: c.header })),
   );
+  const [, cLabel, cSym, cExpr, , cUnit, cNote] = COLUMNS;
 
   const laid = layoutRows(result.rows);
   const exprCol = EXPR_COL.charCodeAt(0) - 64;
@@ -388,15 +408,17 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
       xr.height = 20;
       continue;
     }
-    put(ws, excelRow, 2, 2, row.label, { valign: 'top' });
-    put(ws, excelRow, 3, 3, row.symbol ?? '', { align: 'center', valign: 'top' });
-    const unit = put(ws, excelRow, 6, 6, row.unit ?? '', { align: 'center', valign: 'top', wrap: false });
+    put(ws, excelRow, cLabel.from, cLabel.to, row.label, { valign: 'top' });
+    put(ws, excelRow, cSym.from, cSym.to, row.symbol ?? '', { align: 'center', valign: 'top' });
+    const unit = put(ws, excelRow, cUnit.from, cUnit.to, row.unit ?? '', { align: 'center', valign: 'top', wrap: false });
     unit.alignment = { ...unit.alignment, shrinkToFit: true };
     const note = row.note ?? (row.kind === 'input' ? hint(row.key) : '');
-    put(ws, excelRow, 7, 7, note, { valign: 'top', size: SIZE.small });
+    put(ws, excelRow, cNote.from, cNote.to, note, { valign: 'top', size: SIZE.small });
 
     const wide = isWideText(row);
+    // 文字の入力値は計算式の列から値の列まで、それ以外は計算式の2列を結合する
     if (wide) ws.mergeCells(excelRow, exprCol, excelRow, valueCol);
+    else ws.mergeCells(excelRow, cExpr.from, excelRow, cExpr.to);
     const v = ws.getCell(excelRow, wide ? exprCol : valueCol);
     const fmt = excelNumFmt(row.digits);
     let exprText = '';
@@ -423,10 +445,10 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
     };
 
     const lines = Math.max(
-      lineCount(row.label, COLUMNS[1].width),
-      lineCount(exprText, COLUMNS[3].width),
-      lineCount(note, COLUMNS[6].width, SIZE.small),
-      typeof row.value === 'string' ? lineCount(String(l.cellValue), wide ? COLUMNS[3].width + COLUMNS[4].width : COLUMNS[4].width) : 1,
+      lineCount(row.label, columnWidth(1)),
+      lineCount(exprText, columnWidth(3)),
+      lineCount(note, columnWidth(6), SIZE.small),
+      typeof row.value === 'string' ? lineCount(String(l.cellValue), wide ? columnWidth(3) + columnWidth(4) : columnWidth(4)) : 1,
     );
     xr.height = heightFor(lines);
     for (let c = 1; c <= N; c++) {

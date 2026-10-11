@@ -43,6 +43,14 @@ describe('PL-14 給水管の許容摩擦抵抗と管径', () => {
     expect(value(r, 'okP')).toBe('OK');
     expect(r.warnings.length).toBe(1);
     expect(r.warnings[0]).toContain('立て管');
+    // 明細表の区間ごとの判定は、立て管だけが NG
+    const t = r.rows.find((x) => x.kind === 'table' && x.key === 'sec');
+    if (!t || t.kind !== 'table') throw new Error('no table');
+    const okCol = t.columns.findIndex((c) => c.key === 'ok');
+    expect(t.rows.map((row) => row[okCol])).toEqual(['OK', 'NG', 'OK', 'OK']);
+    // 立て管の流速 = 150/60000 ÷ (π × 0.04² ÷ 4) ≒ 1.989 m/s
+    const vCol = t.columns.findIndex((c) => c.key === 'v');
+    expect(t.rows[1][vCol] as number).toBeCloseTo(1.9894, 3);
   });
   it('高置タンク方式：起点 0 kPa、器具がタンクより 12 m 下', () => {
     // ΔPa = 0 − 30 − (−12 × 9.80665) − 0 = 87.6798、R = 87.6798 ÷ (40 × 2) = 1.09600

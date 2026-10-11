@@ -55,11 +55,20 @@ function DetailTable({ table, rows }: { table: SheetTableRow; rows: SheetRow[] }
             {table.rows.map((r, i) => (
               <tr key={i}>
                 <td className="detail__no num">{i + 1}</td>
-                {table.columns.map((c, ci) => (
-                  <td key={c.key} className={typeof r[ci] === 'number' ? 'ta-r num' : ''}>
-                    {formatValue(r[ci], c.digits)}
-                  </td>
-                ))}
+                {table.columns.map((c, ci) =>
+                  c.format === 'judge' ? (
+                    <td key={c.key} className="detail__judge">
+                      <span className={`judge judge--sm ${r[ci] === 'OK' ? 'is-ok' : 'is-ng'}`}>
+                        <Icon name={r[ci] === 'OK' ? 'check' : 'x'} size={14} />
+                        {r[ci] === 'OK' ? '適合' : '不適合'}
+                      </span>
+                    </td>
+                  ) : (
+                    <td key={c.key} className={typeof r[ci] === 'number' ? 'ta-r num' : ''}>
+                      {formatValue(r[ci], c.digits)}
+                    </td>
+                  ),
+                )}
               </tr>
             ))}
           </tbody>

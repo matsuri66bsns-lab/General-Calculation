@@ -20,6 +20,11 @@ export function pl14Doc(): ToolDoc {
         body: '区間の流量 Q（L/min）と内径 D（mm）から、管 1 m 当たりの摩擦損失を求めます（PL-03 と同じ式）。すべての区間で i ≤ R なら、その管径で末端の器具の必要圧力を確保できます。',
       },
       {
+        title: '区間ごとの流速と判定',
+        expr: 'v = (Q ÷ 60000) ÷ (π × (D ÷ 1000)² ÷ 4)、 判定 i ≤ R',
+        body: '区間ごとに管内の流速を求め、単位摩擦損失が許容摩擦抵抗以下かを判定します。判定が不適合の区間は、管径を1サイズ太くします。流速は、ウォーターハンマーや騒音の目安（給水管では一般に 2.0 m/s 以下）との比較に使います。',
+      },
+      {
         title: '区間の損失と合計の確認',
         expr: 'Δp = i × L × (1 + k)、 判定 ΣΔp ≤ ΔPa',
         body: '区間の直管長に局部損失の割増を加えて区間の損失を求め、経路全体で足し合わせます。合計が使える圧力以内なら OK です。差の Pm が末端の器具での圧力の余裕です。',
@@ -40,6 +45,7 @@ export function pl14Doc(): ToolDoc {
       { symbol: 'Q', origin: '流量を表す慣用記号', meaning: '区間の流量（同時使用流量）', unit: 'L/min' },
       { symbol: 'D', origin: 'Diameter（直径）の頭文字', meaning: '区間の管の内径', unit: 'mm' },
       { symbol: 'L', origin: 'Length（長さ）の頭文字', meaning: '区間の直管長', unit: 'm' },
+      HW_SYMBOLS.v,
       HW_SYMBOLS.i,
       { symbol: 'Δp', origin: 'Δ（デルタ：差）と p（pressure：圧力）。圧力の差＝損失を表す慣用記号', meaning: '区間の損失（局部損失の割増を含む）', unit: 'kPa' },
       { symbol: 'imax', origin: 'i に max（maximum：最大）を添えた本サイトの表記', meaning: '区間の単位摩擦損失の最大値', unit: 'kPa/m' },

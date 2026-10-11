@@ -135,6 +135,8 @@ export interface SheetTableColumn {
   expr?: string;
   /** 計算列の Excel 式（例: "{@n}*{@u}"）。{key} で表の外の行も参照できる */
   formula?: string;
+  /** 'judge' は行ごとの判定の列。値は "OK" / "NG"、式は IF(条件,"OK","NG") */
+  format?: 'judge';
 }
 
 /**

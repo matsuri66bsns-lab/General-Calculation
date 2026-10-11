@@ -45,7 +45,7 @@ export function expectExcelMatches(result: CalcResult, label = '') {
   const V = VALUE_COL.charCodeAt(0) - 65;
   const X = EXPR_COL.charCodeAt(0) - 65;
   const lastRow = Math.max(last, ...laid.map((l) => l.table?.lastRow ?? 0));
-  const grid: (string | number | null)[][] = Array.from({ length: lastRow }, () => Array(7).fill(null));
+  const grid: (string | number | null)[][] = Array.from({ length: lastRow }, () => Array(9).fill(null));
   const col = (letter: string) => letter.charCodeAt(0) - 65;
   for (const l of laid) {
     if (l.row.kind === 'table' && l.table) {
@@ -73,9 +73,10 @@ export function expectExcelMatches(result: CalcResult, label = '') {
         const t = l.table;
         const tr = l.row;
         tr.rows.forEach((vals, ri) =>
-          vals.forEach((want, ci) => {
+          vals.forEach((_v, ci) => {
             const f = t.formulas[ri][ci];
             if (!f) return;
+            const want = t.values[ri][ci];
             const got = hf.getCellValue({ sheet: 0, row: t.firstRow + ri - 1, col: col(t.colLetters[ci]) });
             const msg = `${label} ${tr.key}[${ri}].${tr.columns[ci].key}: ${f} → ${JSON.stringify(got)}（画面の値 ${JSON.stringify(want)}）`;
             if (typeof want === 'number') expect(got as number, msg).toBeCloseTo(want, 6);
