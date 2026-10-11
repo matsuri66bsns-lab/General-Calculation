@@ -101,8 +101,16 @@
   box-sizing: border-box;
 }
 
+/* 文字の大きさは rem で指定し、ここで全体の基準を決める。スマホ幅では全体を 14px 基準に小さくする */
 html {
   -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+}
+
+@media screen and (max-width: 720px) {
+  html {
+    font-size: 14px;
+  }
 }
 
 body {
@@ -110,7 +118,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--f-body);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.75;
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
@@ -152,7 +160,7 @@ button:disabled {
 
 kbd {
   font-family: var(--f-num);
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 0 6px;
   border-radius: 4px;
   border: 1px solid currentColor;
@@ -181,7 +189,7 @@ kbd {
 }
 
 .small {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .ta-r {
@@ -270,7 +278,7 @@ kbd {
   gap: 10px;
   padding: 4px 8px;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 1.0625rem;
   letter-spacing: 0.04em;
 }
 
@@ -312,7 +320,7 @@ kbd {
   border: 1px solid color-mix(in srgb, var(--on-chrome) 30%, transparent);
   background: color-mix(in srgb, var(--on-chrome) 8%, transparent);
   color: var(--on-chrome-2);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .side__search kbd {
@@ -338,7 +346,7 @@ kbd {
   background: transparent;
   color: var(--on-chrome-2);
   text-decoration: none;
-  font-size: 15px;
+  font-size: 0.9375rem;
   text-align: left;
 }
 
@@ -361,7 +369,7 @@ kbd {
 
 .side__heading {
   padding: 0 12px 4px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: 0.12em;
   color: var(--on-chrome-2);
 }
@@ -384,7 +392,7 @@ kbd {
   border-radius: var(--r-sm);
   background: transparent;
   color: var(--on-chrome);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-align: left;
 }
@@ -411,7 +419,7 @@ kbd {
 
 .side__count {
   font-family: var(--f-num);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--on-chrome-2);
 }
 
@@ -432,19 +440,19 @@ kbd {
   border-radius: var(--r-sm);
   color: var(--on-chrome-2);
   text-decoration: none;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.4;
 }
 
 .side__tools .tool-id {
-  font-size: 12px;
+  font-size: 0.75rem;
   flex: none;
   opacity: 0.85;
 }
 
 .side__empty {
   padding: 6px 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--on-chrome-2);
 }
 
@@ -475,7 +483,7 @@ kbd {
   flex: none;
   border-right: 1px solid var(--line);
   color: var(--text-2);
-  font-size: 15px;
+  font-size: 0.9375rem;
   white-space: nowrap;
 }
 
@@ -495,7 +503,7 @@ kbd {
 }
 
 .tab__id {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-2);
 }
 
@@ -541,7 +549,7 @@ kbd {
   background: var(--surface-2);
   border-top: 1px solid var(--line);
   color: var(--text-2);
-  font-size: 14px;
+  font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -589,7 +597,7 @@ kbd {
 }
 
 .hero h1 {
-  font-size: clamp(28px, 3.2vw, 38px);
+  font-size: clamp(1.75rem, 3.2vw, 2.375rem);
   font-weight: 700;
 }
 
@@ -631,7 +639,7 @@ kbd {
   align-items: center;
   height: 100%;
   padding: 0 26px 0 16px;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
 }
@@ -639,7 +647,7 @@ kbd {
 .pipe__flow {
   margin-left: auto;
   padding-right: 16px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--on-chrome-2);
 }
 
@@ -666,7 +674,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   white-space: nowrap;
   color: var(--on-chrome-2);
@@ -685,7 +693,7 @@ kbd {
   align-items: center;
   gap: 12px;
   min-width: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--on-chrome-2);
 }
 
@@ -696,7 +704,7 @@ kbd {
 
 .tool-band h1 {
   min-width: 0;
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--on-chrome);
@@ -707,7 +715,7 @@ kbd {
 
 .tool-band__summary {
   color: var(--on-chrome-2);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   white-space: nowrap;
   overflow: hidden;
@@ -728,7 +736,7 @@ kbd {
   align-items: center;
   height: 28px;
   padding: 0 18px 0 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -738,7 +746,7 @@ kbd {
 
 .tag--sm {
   height: 24px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   padding: 0 16px 0 8px;
 }
 
@@ -795,7 +803,7 @@ kbd {
 
 .page-head h1,
 h1.page-head {
-  font-size: clamp(26px, 3vw, 32px);
+  font-size: clamp(1.625rem, 3vw, 2rem);
   font-weight: 700;
 }
 
@@ -813,7 +821,7 @@ h1.page-head {
 }
 
 .toolbar h2 {
-  font-size: 22px;
+  font-size: 1.375rem;
 }
 
 .lead {
@@ -843,7 +851,7 @@ h1.page-head {
 }
 
 .panel__head h2 {
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .empty {
@@ -860,7 +868,7 @@ h1.page-head {
   margin-left: 8px;
   padding: 0 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -877,7 +885,7 @@ h1.page-head {
   padding: 0 18px;
   border-radius: var(--r-md);
   border: 1px solid transparent;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   white-space: nowrap;
   text-decoration: none;
@@ -929,7 +937,7 @@ h1.page-head {
   padding: 0 8px;
   background: transparent;
   color: var(--accent);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .btn--text:hover {
@@ -959,7 +967,7 @@ h1.page-head {
   border-radius: 999px;
   border: 1px solid var(--field);
   background: transparent;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 
@@ -982,7 +990,7 @@ h1.page-head {
 .tool-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .tool-table th,
@@ -994,7 +1002,7 @@ h1.page-head {
 }
 
 .tool-table thead th {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-2);
   background: var(--surface-2);
@@ -1037,7 +1045,7 @@ h1.page-head {
 
 .id-cell {
   color: var(--text-2);
-  font-size: 14px;
+  font-size: 0.875rem;
   white-space: nowrap;
 }
 
@@ -1068,14 +1076,14 @@ h1.page-head {
 
 .col-desc {
   color: var(--text-2);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   min-width: 240px;
 }
 
 .col-used {
   color: var(--text-2);
-  font-size: 14px;
+  font-size: 0.875rem;
   white-space: nowrap;
 }
 
@@ -1099,7 +1107,7 @@ h1.page-head {
 
 .field__label {
   display: block;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   margin-bottom: 6px;
   line-height: 1.4;
@@ -1120,7 +1128,7 @@ h1.page-head {
   background: var(--surface);
   color: var(--text);
   font-family: var(--f-num);
-  font-size: 18px;
+  font-size: 1.125rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1133,7 +1141,7 @@ h1.page-head {
 .field__unit {
   position: absolute;
   right: 14px;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text-2);
   pointer-events: none;
   background: var(--surface);
@@ -1147,7 +1155,7 @@ h1.page-head {
 .select {
   appearance: none;
   font-family: var(--f-body);
-  font-size: 16px;
+  font-size: 1rem;
   padding-right: 40px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23838b8d'%3E%3Cpath d='M5 8l7 7 7-7 1.4 1.4L12 17.8 3.6 9.4 5 8Z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -1162,7 +1170,7 @@ h1.page-head {
 .field__help,
 .field__error {
   margin: 6px 0 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -1196,7 +1204,7 @@ h1.page-head {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-2);
 }
 
@@ -1246,7 +1254,7 @@ h1.page-head {
 }
 
 .meter__label {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 
@@ -1258,14 +1266,14 @@ h1.page-head {
 }
 
 .meter__value .num {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 500;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
 .meter__unit {
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text-2);
 }
 
@@ -1276,7 +1284,7 @@ h1.page-head {
   padding: 4px 14px 4px 10px;
   border-radius: 999px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 1rem;
   white-space: nowrap;
 }
 
@@ -1292,7 +1300,7 @@ h1.page-head {
 
 .judge__raw {
   font-family: var(--f-num);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   opacity: 0.85;
 }
@@ -1305,7 +1313,7 @@ h1.page-head {
   border-radius: var(--r-md);
   background: var(--warn-bg);
   color: var(--warn-text);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
 }
 
@@ -1328,7 +1336,7 @@ h1.page-head {
   border: 2px solid var(--ng);
   border-radius: var(--r-md);
   color: var(--ng);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
 }
 
@@ -1345,7 +1353,7 @@ h1.page-head {
 .calc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .calc-table th,
@@ -1357,7 +1365,7 @@ h1.page-head {
 }
 
 .calc-table thead th {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-2);
   border-bottom: 2px solid var(--text);
@@ -1369,7 +1377,7 @@ h1.page-head {
 
 .calc-table__section th {
   padding-top: 18px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--accent);
   border-bottom: none;
   letter-spacing: 0.08em;
@@ -1382,19 +1390,19 @@ h1.page-head {
 .sym {
   margin-left: 8px;
   font-family: var(--f-num);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-2);
   font-weight: 400;
 }
 
 .calc-table__note {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 
 .calc-table__expr {
   font-family: var(--f-num);
-  font-size: 14px;
+  font-size: 0.875rem;
   min-width: 240px;
   letter-spacing: 0;
 }
@@ -1405,7 +1413,7 @@ h1.page-head {
 
 .calc-table__value {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 1rem;
   white-space: nowrap;
 }
 
@@ -1420,12 +1428,12 @@ h1.page-head {
 
 /* 解説・本文 */
 .notes h2 {
-  font-size: 18px;
+  font-size: 1.125rem;
   margin-bottom: 10px;
 }
 
 .notes h3 {
-  font-size: 16px;
+  font-size: 1rem;
   margin: 18px 0 6px;
 }
 
@@ -1434,7 +1442,7 @@ h1.page-head {
   margin: 0;
   padding-left: 1.3em;
   color: var(--text-2);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .notes li + li,
@@ -1447,7 +1455,7 @@ h1.page-head {
 }
 
 .prose h2 {
-  font-size: 19px;
+  font-size: 1.1875rem;
   margin: 26px 0 8px;
 }
 
@@ -1500,7 +1508,7 @@ h1.page-head {
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .dialog__search input:focus {
@@ -1531,7 +1539,7 @@ h1.page-head {
 }
 
 .dialog__id {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
   width: 52px;
   flex: none;
@@ -1580,7 +1588,7 @@ h1.page-head {
 
 .export-dialog__head h2 {
   margin: 0;
-  font-size: 19px;
+  font-size: 1.1875rem;
 }
 
 .export-dialog__body {
@@ -1648,7 +1656,7 @@ h1.page-head {
 
 .check__desc {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 
@@ -1760,7 +1768,7 @@ h1.page-head {
 
   .tool-band h1 {
     flex-basis: 100%;
-    font-size: 20px;
+    font-size: 1.25rem;
   }
 
   .hero {
@@ -1795,7 +1803,7 @@ h1.page-head {
   }
 
   .meter__value .num {
-    font-size: 26px;
+    font-size: 1.625rem;
   }
 
   .statusbar {
@@ -1852,7 +1860,7 @@ h1.page-head {
     grid-row: 2;
     min-width: 0;
     margin-top: 4px;
-    font-size: 13px;
+    font-size: 0.8125rem;
     overflow-wrap: anywhere;
   }
 
@@ -2003,7 +2011,7 @@ h1.page-head {
   border-radius: var(--r-sm);
   background: var(--surface-2);
   border: 1px solid var(--line);
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.03em;
@@ -2011,19 +2019,19 @@ h1.page-head {
 
 .formula__body {
   color: var(--text-2);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.75;
 }
 
 .doc-subhead {
-  font-size: 16px;
+  font-size: 1rem;
   margin: 22px 0 8px;
 }
 
 .symbol-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .symbol-table th,
@@ -2035,7 +2043,7 @@ h1.page-head {
 }
 
 .symbol-table thead th {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-2);
   border-bottom: 2px solid var(--text);
@@ -2043,7 +2051,7 @@ h1.page-head {
 }
 
 .symbol-table__sym {
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
   white-space: nowrap;
   min-width: 56px;
@@ -2100,7 +2108,7 @@ h1.page-head {
   .symbol-table__origin {
     grid-area: origin;
     min-width: 0;
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 }
 
@@ -2143,12 +2151,12 @@ h1.page-head {
 }
 
 .beginner__title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
 .beginner__hint {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 
@@ -2159,7 +2167,7 @@ h1.page-head {
 }
 
 .beginner__body h3 {
-  font-size: 16px;
+  font-size: 1rem;
   margin-bottom: 8px;
   padding-left: 10px;
   border-left: 3px solid var(--accent);
@@ -2172,7 +2180,7 @@ h1.page-head {
 .beginner__body p,
 .beginner__body li,
 .beginner__terms dd {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.8;
 }
 
