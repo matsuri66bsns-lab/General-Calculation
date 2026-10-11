@@ -1,4 +1,4 @@
-import type { BeginnerDoc, SymbolDoc, ToolDoc } from '../../core/types';
+import type { BeginnerDoc, ToolDoc } from '../../core/types';
 import { HW_SYMBOLS } from './pl-03';
 
 export interface FixtureDef {
@@ -27,15 +27,6 @@ export const PL02_FIXTURES: FixtureDef[] = [
   { key: 'bath', label: '浴槽', n: '0', u: '4', hints: [{ label: '公衆用 目安 4', value: 4 }, { label: '私室用 目安 2', value: 2 }] },
   { key: 'shower', label: 'シャワー', n: '0', u: '4', hints: [{ label: '公衆用 目安 4', value: 4 }, { label: '私室用 目安 2', value: 2 }] },
 ];
-
-function fixtureSymbols(list: FixtureDef[], unitName: string, unitOrigin: string): SymbolDoc[] {
-  return list.flatMap((f, i) => [
-    { symbol: `n${sub(i)}`, origin: `number（数）の頭文字 n に器具の番号を添えた本サイトの表記`, meaning: `${f.label}の個数`, unit: '個' },
-    { symbol: `u${sub(i)}`, origin: `unit（単位）の頭文字 u に器具の番号を添えた本サイトの表記（${unitOrigin}）`, meaning: `${f.label}の${unitName}`, unit: '—' },
-  ]);
-}
-
-export { fixtureSymbols };
 
 export function pl02Doc(): ToolDoc {
   return {

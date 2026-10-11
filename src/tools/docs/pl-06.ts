@@ -1,16 +1,27 @@
 import type { BeginnerDoc, ToolDoc, Values } from '../../core/types';
-import { type FixtureDef, fixtureSymbols } from './pl-02';
 
-/** 器具の行。器具排水負荷単位は SHASE-S 206 の表から利用者が入力する（ここの値は目安の初期値） */
-export const PL06_FIXTURES: FixtureDef[] = [
-  { key: 'wc', label: '大便器', n: '4', u: '6', hints: [{ label: '私室用 目安 4', value: 4 }, { label: '公衆用 目安 6', value: 6 }, { label: '公衆用 目安 8', value: 8 }] },
-  { key: 'ur', label: '小便器', n: '3', u: '4', hints: [{ label: '目安 4', value: 4 }] },
-  { key: 'lav', label: '洗面器', n: '4', u: '1', hints: [{ label: '目安 1', value: 1 }, { label: '目安 2', value: 2 }] },
-  { key: 'hw', label: '手洗器', n: '0', u: '0.5', hints: [{ label: '目安 0.5', value: 0.5 }] },
-  { key: 'osink', label: '事務室用流し', n: '1', u: '3', hints: [{ label: '目安 3', value: 3 }] },
-  { key: 'ssink', label: '掃除流し', n: '1', u: '3', hints: [{ label: '目安 3', value: 3 }] },
-  { key: 'bath', label: '浴槽', n: '0', u: '2', hints: [{ label: '住宅用 目安 2', value: 2 }, { label: '公衆用 目安 3', value: 3 }] },
-  { key: 'shower', label: 'シャワー', n: '0', u: '2', hints: [{ label: '目安 2', value: 2 }] },
+export interface DrainFixture {
+  label: string;
+  /** 個数の初期値（0 の器具は既定の明細に入れない） */
+  n: string;
+  /** 器具排水負荷単位の初期値（目安） */
+  u: string;
+  /** 目安の値（入力欄の補足に出す） */
+  hints: string;
+  /** 排水口径（トラップ口径）の初期値の目安（mm） */
+  d: string;
+}
+
+/** 器具の一覧。器具排水負荷単位と排水口径は SHASE-S 206 の表・器具の資料から利用者が入力する（ここの値は目安の初期値） */
+export const PL06_FIXTURES: DrainFixture[] = [
+  { label: '大便器', n: '4', u: '6', hints: '私室用 4／公衆用 6・8', d: '75' },
+  { label: '小便器', n: '3', u: '4', hints: '4', d: '40' },
+  { label: '洗面器', n: '4', u: '1', hints: '1・2', d: '30' },
+  { label: '手洗器', n: '0', u: '0.5', hints: '0.5', d: '25' },
+  { label: '事務室用流し', n: '1', u: '3', hints: '3', d: '40' },
+  { label: '掃除流し', n: '1', u: '3', hints: '3', d: '65' },
+  { label: '浴槽', n: '0', u: '2', hints: '住宅用 2／公衆用 3', d: '40' },
+  { label: 'シャワー', n: '0', u: '2', hints: '2', d: '50' },
 ];
 
 export const PART_LABEL: Record<string, string> = {
@@ -23,16 +34,20 @@ export function pl06Doc(v: Values): ToolDoc {
   const part = PART_LABEL[String(v.part)] ?? '排水管';
   return {
     formulas: [
-      { title: '排水負荷単位の合計（SHASE-S 206）', expr: 'ΣDFU = n₁ × u₁ + n₂ × u₂ + …', body: '器具ごとに「個数 × 器具排水負荷単位」を求めて合計します。器具排水負荷単位は、洗面器の排水量などを基準にした重みです。値は SHASE-S 206 の表から入力します。' },
+      { title: '排水負荷単位の合計（SHASE-S 206）', expr: 'ΣDFU = Σ(n × u)', body: '明細の行ごとに「個数 × 器具排水負荷単位」を求めて合計します。器具排水負荷単位は、洗面器の排水量などを基準にした重みです。値は SHASE-S 206 の表から入力します。' },
+      { title: '器具の最大の排水口径', expr: 'Do = max(d)', body: '明細の各行に入力した排水口径（トラップ口径）のうち、最も大きい値です。管径の判定に使います。' },
       { title: `負荷の判定（${part}）`, expr: 'ΣDFU ≤ DFUa', body: `選んだ管径の${part}に接続できる許容最大排水負荷単位（SHASE-S 206 の表の値）以下なら OK です。横主管は勾配によって、立て管は階数によって許容値が変わります。` },
       { title: '管径の判定', expr: 'D ≥ Do', body: '排水管は、接続する器具の排水口（トラップ）の口径より細くできません。器具の最大の排水口径以上なら OK です。' },
     ],
     symbols: [
-      ...fixtureSymbols(PL06_FIXTURES, '器具排水負荷単位', 'ここでは器具排水負荷単位'),
+      { symbol: 'n', origin: 'number（数）の頭文字', meaning: '器具の個数（明細の各行）', unit: '個' },
+      { symbol: 'u', origin: 'unit（単位）の頭文字。本サイトの表記', meaning: '器具排水負荷単位（明細の各行。SHASE-S 206 の表の値）', unit: '—' },
+      { symbol: 'd', origin: 'diameter（直径）の頭文字。本サイトの表記', meaning: '器具の排水口径（トラップ口径。明細の各行）', unit: 'mm' },
+      { symbol: 'DFU', origin: 'drainage fixture unit（器具排水単位）の略。SHASE-S 206 の用語', meaning: '明細の各行の排水負荷単位（n × u）', unit: '—' },
       { symbol: 'ΣDFU', origin: 'Σ（シグマ：合計）と DFU（drainage fixture unit：器具排水単位）。SHASE-S 206 の用語', meaning: '排水負荷単位の合計', unit: '—' },
       { symbol: 'D', origin: 'Diameter（直径）の頭文字', meaning: '選んだ排水管の呼び径', unit: 'mm' },
       { symbol: 'DFUa', origin: 'DFU に a（allowable：許容）を添えた本サイトの表記', meaning: '選んだ管径の許容最大排水負荷単位（SHASE-S 206 の表の値）', unit: '—' },
-      { symbol: 'Do', origin: 'D（Diameter：直径）に o（outlet：排水口）を添えた本サイトの表記', meaning: '接続する器具の最大の排水口径（トラップ口径）', unit: 'mm' },
+      { symbol: 'Do', origin: 'D（Diameter：直径）に o（outlet：排水口）を添えた本サイトの表記', meaning: '接続する器具の最大の排水口径（トラップ口径。明細の d の最大値）', unit: 'mm' },
     ],
   };
 }
@@ -53,9 +68,10 @@ export const pl06Beginner: BeginnerDoc = {
     title: '事務所の便所（大便器 4、小便器 3、洗面器 4、事務室用流し 1、掃除流し 1）を横枝管 100 mm で受ける場合',
     steps: [
       'ΣDFU = 4 × 6 + 3 × 4 + 4 × 1 + 1 × 3 + 1 × 3 = 46（負荷単位は目安値）',
+      '器具の最大の排水口径 Do = 大便器の 75 mm（明細の排水口径の最大値）',
       'SHASE-S 206 の表から、横枝管 100 mm の許容最大排水負荷単位を読み取る（例では 160 と入力）',
       '46 ≤ 160 なので負荷は OK',
-      '器具の最大の排水口径 75 mm ≤ 管径 100 mm なので管径も OK',
+      'Do = 75 mm ≤ 管径 100 mm なので管径も OK',
     ],
   },
   pitfalls: [
