@@ -1,0 +1,2243 @@
+/* =========================================================
+   設備計算ラボ　デザイントークン
+   配色：識別色案（D案）／ 構成：サイドバー＋タブ＋状態バー（B案）
+   共通基準：本文・操作部品 16px 以上、文字 4.5:1・枠線 3:1 以上、
+             フォーカスは黄色と黒の二重リング（デジタル庁DSを参考）
+   ========================================================= */
+:root {
+  --bg: #f0f2f0;
+  --surface: #ffffff;
+  --surface-2: #f5f6f5;
+  --text: #1b1f20;
+  --text-2: #5a6265;
+  --line: #e0e4e2;
+  --field: #838b8d;
+  --accent: #0f6b5b;
+  --on-accent: #ffffff;
+  --ok: #1a7a3a;
+  --ng: #c0261e;
+  --warn-bg: #fbf1d4;
+  --warn-text: #6c4a00;
+  --chrome: #22272a;
+  --side: #1a1e20;
+  --on-chrome: #eef1f0;
+  --on-chrome-2: #b9c1c3;
+  --focus-y: #ffd43d;
+  --focus-k: #000000;
+
+  /* JIS Z 9102 の識別色（分類ラベル） */
+  --tag-hvac-bg: #ffffff;
+  --tag-hvac-fg: #1b1f20;
+  --tag-hvac-bd: #838b8d;
+  --tag-plumbing-bg: #2a6fdb;
+  --tag-plumbing-fg: #ffffff;
+  --tag-plumbing-bd: #2a6fdb;
+  --tag-electrical-bg: #f6b26b;
+  --tag-electrical-fg: #3a2205;
+  --tag-electrical-bd: #f6b26b;
+  --tag-common-bg: #5a6265;
+  --tag-common-fg: #ffffff;
+  --tag-common-bd: #5a6265;
+  --tag-fire-bg: #c8322a;
+  --tag-fire-fg: #ffffff;
+
+  /* 書体は Noto Sans JP で統一し、ツールID（XX-01）だけ等幅の Noto Sans Mono にする */
+  --f-body: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+  --f-num: var(--f-body);
+  --f-id: 'Noto Sans Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --side-w: 264px;
+  --bar-h: 52px;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #111414;
+  --surface: #1a1e1f;
+  --surface-2: #222728;
+  --text: #eceeed;
+  --text-2: #a2a9ab;
+  --line: #2b3133;
+  --field: #6c7577;
+  --accent: #4cc4aa;
+  --on-accent: #0b1514;
+  --ok: #5bd08a;
+  --ng: #ff8178;
+  --warn-bg: #30290f;
+  --warn-text: #f0cd65;
+  --chrome: #1c2122;
+  --side: #0b0d0e;
+  --on-chrome: #e2e6e5;
+  --on-chrome-2: #a2a9ab;
+
+  --tag-hvac-bg: #e9ecec;
+  --tag-hvac-fg: #111414;
+  --tag-hvac-bd: #e9ecec;
+  --tag-plumbing-bg: #5b9bff;
+  --tag-plumbing-fg: #06142b;
+  --tag-plumbing-bd: #5b9bff;
+  --tag-electrical-bg: #f6b26b;
+  --tag-electrical-fg: #2b1800;
+  --tag-electrical-bd: #f6b26b;
+  --tag-common-bg: #a2a9ab;
+  --tag-common-fg: #111414;
+  --tag-common-bd: #a2a9ab;
+  --tag-fire-bg: #ff7b70;
+  --tag-fire-fg: #2a0705;
+
+  color-scheme: dark;
+}
+
+/* =========================================================
+   ベース
+   ========================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.2em;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+:focus-visible {
+  outline: 4px solid var(--focus-k);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--focus-y);
+}
+
+kbd {
+  font-family: var(--f-num);
+  font-size: 12px;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.tool-id {
+  font-family: var(--f-id);
+  letter-spacing: 0;
+}
+
+.mono {
+  font-family: var(--f-num);
+  letter-spacing: 0;
+}
+
+.num {
+  font-family: var(--f-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.muted {
+  color: var(--text-2);
+}
+
+.small {
+  font-size: 14px;
+}
+
+.ta-r {
+  text-align: right;
+}
+
+.print-only {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--r-sm);
+}
+
+.skip:focus {
+  top: 8px;
+}
+
+/* =========================================================
+   画面の枠組み（サイドバー｜タブ・本文・状態バー）
+   ========================================================= */
+.shell {
+  display: grid;
+  grid-template-columns: var(--side-w) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.shell__side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--side);
+  color: var(--on-chrome);
+  scrollbar-width: thin;
+}
+
+.shell__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+  outline: none;
+}
+
+.topbar {
+  display: none;
+}
+
+.shell__scrim {
+  display: none;
+}
+
+/* ---- サイドバー ---- */
+.side {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 16px 12px;
+  gap: 16px;
+}
+
+.side__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+}
+
+.side__mark {
+  display: flex;
+  gap: 2px;
+}
+
+.side__mark i {
+  display: block;
+  width: 5px;
+  height: 20px;
+  border-radius: 1px;
+}
+
+.m-hvac {
+  background: var(--tag-hvac-bg);
+}
+.m-plumbing {
+  background: var(--tag-plumbing-bg);
+}
+.m-electrical {
+  background: var(--tag-electrical-bg);
+}
+.m-common {
+  background: var(--tag-common-bg);
+}
+.m-fire {
+  background: var(--tag-fire-bg);
+}
+
+.side__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--on-chrome) 30%, transparent);
+  background: color-mix(in srgb, var(--on-chrome) 8%, transparent);
+  color: var(--on-chrome-2);
+  font-size: 15px;
+}
+
+.side__search kbd {
+  margin-left: auto;
+}
+
+.side__nav,
+.side__foot {
+  display: grid;
+  gap: 2px;
+}
+
+.side__nav a,
+.side__foot a,
+.side__foot button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 0;
+  background: transparent;
+  color: var(--on-chrome-2);
+  text-decoration: none;
+  font-size: 15px;
+  text-align: left;
+}
+
+.side__nav a:hover,
+.side__foot a:hover,
+.side__foot button:hover,
+.side__tools a:hover,
+.side__cat:hover {
+  background: color-mix(in srgb, var(--on-chrome) 8%, transparent);
+  color: var(--on-chrome);
+}
+
+.side__nav a.active,
+.side__foot a.active,
+.side__tools a.active {
+  background: color-mix(in srgb, var(--on-chrome) 14%, transparent);
+  color: var(--on-chrome);
+  font-weight: 700;
+}
+
+.side__heading {
+  padding: 0 12px 4px;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--on-chrome-2);
+}
+
+.side__tree {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  flex: 1;
+}
+
+.side__cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--on-chrome);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.side__chev {
+  color: var(--on-chrome-2);
+  transition: transform 0.15s;
+}
+
+.side__chev.is-open {
+  transform: rotate(90deg);
+}
+
+.side__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.side__catname {
+  flex: 1;
+}
+
+.side__count {
+  font-family: var(--f-num);
+  font-size: 13px;
+  color: var(--on-chrome-2);
+}
+
+.side__tools {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0 0 0 22px;
+  display: grid;
+  gap: 1px;
+}
+
+.side__tools a {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  color: var(--on-chrome-2);
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.side__tools .tool-id {
+  font-size: 12px;
+  flex: none;
+  opacity: 0.85;
+}
+
+.side__empty {
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--on-chrome-2);
+}
+
+.side__foot {
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--on-chrome) 14%, transparent);
+}
+
+/* ---- タブ ---- */
+.tabstrip {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  overflow-x: auto;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
+}
+
+.tabstrip::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  flex: none;
+  border-right: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.tab--home,
+.tab__link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.tab__link {
+  padding-right: 6px;
+}
+
+.tab__id {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tab__close {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+}
+
+.tab__close:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.is-active,
+.tab--home.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: inset 0 3px 0 var(--accent);
+}
+
+/* ---- 状態バー ---- */
+.statusbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 20px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.statusbar > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.statusbar .is-ok {
+  color: var(--ok);
+  flex: none;
+}
+
+.statusbar .is-ng {
+  color: var(--ng);
+  flex: none;
+}
+
+.statusbar__right {
+  margin-left: auto;
+  flex: none;
+}
+
+/* =========================================================
+   帯（グラファイト）
+   ========================================================= */
+.band {
+  background: var(--chrome);
+  color: var(--on-chrome);
+}
+
+.band__inner {
+  max-width: 1280px;
+  padding: 28px 32px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: center;
+  padding-block: 36px;
+}
+
+.hero h1 {
+  font-size: clamp(28px, 3.2vw, 38px);
+  font-weight: 700;
+}
+
+.hero p {
+  margin-top: 10px;
+  color: var(--on-chrome-2);
+  max-width: 34em;
+}
+
+.pipes {
+  display: grid;
+  gap: 10px;
+}
+
+.pipe {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--on-chrome) 10%, transparent);
+  color: var(--on-chrome);
+  overflow: hidden;
+  text-align: left;
+}
+
+.pipe:hover {
+  background: color-mix(in srgb, var(--on-chrome) 16%, transparent);
+}
+
+.pipe.is-on {
+  box-shadow: inset 0 0 0 2px var(--on-chrome);
+}
+
+.pipe__label {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 26px 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+}
+
+.pipe__flow {
+  margin-left: auto;
+  padding-right: 16px;
+  font-size: 14px;
+  color: var(--on-chrome-2);
+}
+
+.band__inner.tool-band {
+  padding-block: 16px;
+}
+
+/* 各行を1行に収めるので、帯の高さはツールの説明文の長さによらず一定になる */
+.tool-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.tool-band__text {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--on-chrome-2);
+}
+
+.crumb a {
+  color: var(--on-chrome-2);
+}
+
+.crumb a:hover {
+  color: var(--on-chrome);
+}
+
+.tool-band__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--on-chrome-2);
+}
+
+.tool-band__heading .tag,
+.tool-band__heading .tool-id {
+  flex: none;
+}
+
+.tool-band h1 {
+  min-width: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--on-chrome);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-band__summary {
+  color: var(--on-chrome-2);
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-band__actions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+/* =========================================================
+   分類ラベル（配管識別表示の矢印形）
+   ========================================================= */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 18px 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+}
+
+.tag--sm {
+  height: 24px;
+  font-size: 13px;
+  padding: 0 16px 0 8px;
+}
+
+.tag--hvac {
+  /* 白いラベルは背景に埋もれないよう、枠線色の矢印の内側に白い矢印を重ねる */
+  position: relative;
+  isolation: isolate;
+  background: var(--tag-hvac-bd);
+  color: var(--tag-hvac-fg);
+}
+
+.tag--hvac::before {
+  content: '';
+  position: absolute;
+  inset: 1px 1.5px 1px 1px;
+  z-index: -1;
+  background: var(--tag-hvac-bg);
+  clip-path: polygon(0 0, calc(100% - 9.5px) 0, 100% 50%, calc(100% - 9.5px) 100%, 0 100%);
+}
+.tag--plumbing {
+  background: var(--tag-plumbing-bg);
+  color: var(--tag-plumbing-fg);
+}
+.tag--electrical {
+  background: var(--tag-electrical-bg);
+  color: var(--tag-electrical-fg);
+}
+.tag--common {
+  background: var(--tag-common-bg);
+  color: var(--tag-common-fg);
+}
+.tag--fire {
+  background: var(--tag-fire-bg);
+  color: var(--tag-fire-fg);
+}
+
+/* =========================================================
+   本文
+   ========================================================= */
+.page {
+  max-width: 1280px;
+  padding: 24px 32px 48px;
+}
+
+.page--narrow {
+  max-width: 860px;
+}
+
+.page-head {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0 8px;
+}
+
+.page-head h1,
+h1.page-head {
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 700;
+}
+
+.section {
+  margin-top: 24px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.toolbar h2 {
+  font-size: 22px;
+}
+
+.lead {
+  margin: -4px 0 12px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  min-width: 0;
+}
+
+.panel--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.panel__head h2 {
+  font-size: 18px;
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px dashed var(--field);
+  border-radius: var(--r-lg);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  vertical-align: 2px;
+}
+
+/* ---- ボタン ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn--inverse {
+  background: var(--on-chrome);
+  color: var(--chrome);
+}
+
+.btn--outline-inverse {
+  background: transparent;
+  color: var(--on-chrome);
+  border-color: color-mix(in srgb, var(--on-chrome) 55%, transparent);
+}
+
+.btn--outline-inverse:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--on-chrome) 10%, transparent);
+}
+
+.btn--outline {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--field);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 6%, var(--surface));
+}
+
+.btn--icon {
+  width: 44px;
+  padding: 0;
+}
+
+.btn.is-fav {
+  color: var(--tag-electrical-bg);
+  border-color: var(--tag-electrical-bg);
+}
+
+.btn--text {
+  min-height: 36px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.btn--text:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--field);
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.chip:hover {
+  color: var(--text);
+}
+
+.chip.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  font-weight: 700;
+}
+
+/* ---- 一覧表 ---- */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.tool-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.tool-table th,
+.tool-table td {
+  padding: 12px 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-table thead th {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+.tool-table tbody tr {
+  position: relative;
+}
+
+.tool-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tool-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.col-fav {
+  width: 44px;
+  padding-right: 0 !important;
+}
+
+.star {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--field);
+}
+
+.star.is-on {
+  color: #e0912f;
+}
+
+.id-cell {
+  color: var(--text-2);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.name-cell {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.row-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.row-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.row-link:hover {
+  color: var(--accent);
+}
+
+.name-cell__sub {
+  display: none;
+  margin-top: 4px;
+}
+
+.col-desc {
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.6;
+  min-width: 240px;
+}
+
+.col-used {
+  color: var(--text-2);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* ---- 計算画面 ---- */
+.tool-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.tool-results {
+  position: sticky;
+  top: 60px;
+}
+
+.fields {
+  display: grid;
+  gap: 20px;
+}
+
+.field__label {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--field);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--f-num);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.input:focus {
+  outline: 4px solid var(--focus-k);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--focus-y);
+}
+
+.field__unit {
+  position: absolute;
+  right: 14px;
+  font-size: 16px;
+  color: var(--text-2);
+  pointer-events: none;
+  background: var(--surface);
+  padding-left: 6px;
+}
+
+.field__control:has(.field__unit) .input {
+  padding-right: 128px;
+}
+
+.select {
+  appearance: none;
+  font-family: var(--f-body);
+  font-size: 16px;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23838b8d'%3E%3Cpath d='M5 8l7 7 7-7 1.4 1.4L12 17.8 3.6 9.4 5 8Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  text-overflow: ellipsis;
+}
+
+.has-error .input {
+  border: 2px solid var(--ng);
+}
+
+.field__help,
+.field__error {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.field__help {
+  color: var(--text-2);
+}
+
+.field__error {
+  color: var(--ng);
+  font-weight: 700;
+}
+
+.field .chips {
+  margin-top: 8px;
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.segmented button {
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 15px;
+  color: var(--text-2);
+}
+
+.segmented button:hover {
+  color: var(--text);
+}
+
+.segmented button.is-on {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+/* 結果：計器のような2列 */
+.highlights {
+  display: grid;
+  gap: 14px;
+}
+
+.highlights__judge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.meters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 2px solid var(--text);
+}
+
+.meter {
+  padding: 12px 4px 12px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.meter:nth-child(odd) {
+  border-right: 1px solid var(--line);
+  padding-right: 14px;
+}
+
+.meter:nth-child(even) {
+  padding-left: 14px;
+}
+
+.meter__label {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.meter__value {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.meter__value .num {
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.meter__unit {
+  font-size: 16px;
+  color: var(--text-2);
+}
+
+.judge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.judge.is-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 13%, transparent);
+}
+
+.judge.is-ng {
+  color: var(--ng);
+  background: color-mix(in srgb, var(--ng) 12%, transparent);
+}
+
+.judge__raw {
+  font-family: var(--f-num);
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.warnings {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.warnings svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.warnings ul {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.alert {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 2px solid var(--ng);
+  border-radius: var(--r-md);
+  color: var(--ng);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.alert svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+/* 計算根拠の表 */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.calc-table th,
+.calc-table td {
+  padding: 10px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.calc-table thead th {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 2px solid var(--text);
+}
+
+.calc-table thead th.ta-r {
+  text-align: right;
+}
+
+.calc-table__section th {
+  padding-top: 18px;
+  font-size: 14px;
+  color: var(--accent);
+  border-bottom: none;
+  letter-spacing: 0.08em;
+}
+
+.calc-table__label {
+  font-weight: 700;
+}
+
+.sym {
+  margin-left: 8px;
+  font-family: var(--f-num);
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.calc-table__note {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.calc-table__expr {
+  font-family: var(--f-num);
+  font-size: 14px;
+  min-width: 240px;
+  letter-spacing: 0;
+}
+
+.calc-table__subst {
+  color: var(--text-2);
+}
+
+.calc-table__value {
+  font-weight: 500;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.calc-table__unit {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.calc-table tr.is-input .calc-table__value {
+  font-weight: 400;
+}
+
+/* 解説・本文 */
+.notes h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.notes h3 {
+  font-size: 16px;
+  margin: 18px 0 6px;
+}
+
+.notes ul,
+.prose ul {
+  margin: 0;
+  padding-left: 1.3em;
+  color: var(--text-2);
+  font-size: 15px;
+}
+
+.notes li + li,
+.prose li + li {
+  margin-top: 6px;
+}
+
+.notes > p {
+  margin-top: 14px;
+}
+
+.prose h2 {
+  font-size: 19px;
+  margin: 26px 0 8px;
+}
+
+.prose h2:first-child {
+  margin-top: 0;
+}
+
+.prose p {
+  color: var(--text-2);
+}
+
+/* =========================================================
+   検索ダイアログ
+   ========================================================= */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 16px;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 620px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.dialog__search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-bottom: 2px solid var(--text);
+  color: var(--text-2);
+}
+
+.dialog__search input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+}
+
+.dialog__search input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.dialog__results {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.dialog__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.dialog__item.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.dialog__id {
+  font-size: 14px;
+  color: var(--text-2);
+  width: 52px;
+  flex: none;
+}
+
+.dialog__title {
+  flex: 1;
+  font-weight: 700;
+}
+
+.dialog__empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-2);
+}
+
+/* =========================================================
+   Excel 出力ダイアログ
+   ========================================================= */
+.export-dialog {
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-backdrop:has(.export-dialog) {
+  align-items: center;
+  padding-top: 16px;
+}
+
+.export-dialog form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.export-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 12px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.export-dialog__head h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.export-dialog__body {
+  overflow-y: auto;
+  padding: 8px 24px 16px;
+}
+
+.export-dialog__group {
+  border: 0;
+  margin: 0;
+  padding: 12px 0 4px;
+  display: grid;
+  gap: 12px;
+}
+
+.export-dialog__group + .export-dialog__group {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+}
+
+.export-dialog__group legend {
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.export-dialog__group .muted.small {
+  margin: 0;
+}
+
+.export-dialog__error {
+  margin: 0 24px 12px;
+}
+
+.export-dialog__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--line);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.check input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.check__label {
+  display: block;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.check__desc {
+  display: block;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+/* =========================================================
+   レスポンシブ
+   ========================================================= */
+@media (max-width: 1180px) {
+  .col-desc {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shell__side {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 70;
+    width: min(300px, 86vw);
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .drawer-open .shell__side {
+    transform: none;
+    box-shadow: 0 0 48px rgba(0, 0, 0, 0.4);
+  }
+
+  .drawer-open .shell__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: var(--bar-h);
+    padding: 0 4px;
+    background: var(--side);
+    color: var(--on-chrome);
+  }
+
+  .topbar__brand {
+    flex: 1;
+    color: var(--on-chrome);
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .tabstrip {
+    top: var(--bar-h);
+  }
+
+  .tool-cols,
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 幅が狭いときはボタンを下の行に回す（どのツールでも同じ並びなので高さは一定） */
+  .tool-band {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .tool-band__text {
+    flex-basis: 100%;
+  }
+
+  .tool-results {
+    position: static;
+  }
+
+  .statusbar__right {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .band__inner {
+    padding: 22px 16px;
+  }
+
+  .band__inner.tool-band {
+    padding-block: 14px;
+  }
+
+  /* スマホではパンくずを隠し、ツール名を分類ラベル・IDの下の行に全幅で出す */
+  .tool-band .crumb {
+    display: none;
+  }
+
+  .tool-band__heading {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .tool-band h1 {
+    flex-basis: 100%;
+    font-size: 20px;
+  }
+
+  .hero {
+    padding-block: 28px;
+    gap: 22px;
+  }
+
+  .page {
+    padding: 16px 16px 32px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .panel--flush {
+    padding: 0;
+  }
+
+  .col-cat,
+  .col-used,
+  .id-cell {
+    display: none;
+  }
+
+  .name-cell {
+    white-space: normal;
+  }
+
+  .name-cell__sub {
+    display: block;
+  }
+
+  .meter__value .num {
+    font-size: 26px;
+  }
+
+  .statusbar {
+    padding: 4px 16px;
+    gap: 14px;
+  }
+
+  .statusbar > span:nth-child(n + 3) {
+    display: none;
+  }
+
+  /* 計算根拠の表は「項目・値・単位」と「計算式」の2段に組み替える */
+  .calc-table thead {
+    display: none;
+  }
+
+  .calc-table,
+  .calc-table tbody {
+    display: block;
+  }
+
+  .calc-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    column-gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .calc-table td,
+  .calc-table th {
+    padding: 0;
+    border: none;
+  }
+
+  .calc-table td:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .calc-table__value {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .calc-table__unit {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 2.5em;
+  }
+
+  .calc-table__expr {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    margin-top: 4px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .calc-table tr.is-input .calc-table__expr {
+    display: none;
+  }
+
+  .calc-table tr.calc-table__section {
+    display: block;
+    padding: 16px 0 4px;
+    border-bottom: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   印刷（計算書）
+   ========================================================= */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  :root,
+  :root[data-theme='dark'] {
+    --bg: #fff;
+    --surface: #fff;
+    --surface-2: #fff;
+    --text: #000;
+    --text-2: #444;
+    --line: #bbb;
+    --accent: #000;
+    --chrome: #fff;
+    --on-chrome: #000;
+    --on-chrome-2: #444;
+    color-scheme: light;
+  }
+
+  body {
+    font-size: 11pt;
+  }
+
+  .shell {
+    display: block;
+  }
+
+  .shell__side,
+  .topbar,
+  .tabstrip,
+  .statusbar,
+  .no-print,
+  .skip {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .band__inner {
+    padding: 0 0 10px;
+    border-bottom: 2px solid #000;
+  }
+
+  .tool-band h1,
+  .tool-band__summary {
+    white-space: normal;
+  }
+
+  .page {
+    padding: 0;
+    max-width: none;
+  }
+
+  .tool-cols {
+    display: block;
+  }
+
+  .panel {
+    border: 0;
+    padding: 10px 0;
+  }
+
+  .meter__value .num {
+    font-size: 18pt;
+  }
+
+  .calc-table {
+    font-size: 9.5pt;
+  }
+
+  .calc-table tr {
+    break-inside: avoid;
+  }
+
+  .table-wrap {
+    overflow: visible;
+  }
+}
+
+/* 濃い帯の上の白いラベルは枠線なしで十分に見えるため、重ねた矢印を使わない */
+.pipe__label.tag--hvac {
+  background: var(--tag-hvac-bg);
+}
+
+.pipe__label.tag--hvac::before {
+  display: none;
+}
+
+/* =========================================================
+   計算式の解説・記号と略号・初学者向けの解説
+   ========================================================= */
+.formula-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.formula {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) minmax(0, 5fr);
+  gap: 4px 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.formula:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.formula__title {
+  font-weight: 700;
+  grid-row: span 2;
+}
+
+.formula__expr {
+  justify-self: start;
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.formula__body {
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.doc-subhead {
+  font-size: 16px;
+  margin: 22px 0 8px;
+}
+
+.symbol-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.symbol-table th,
+.symbol-table td {
+  padding: 9px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.symbol-table thead th {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 2px solid var(--text);
+  white-space: nowrap;
+}
+
+.symbol-table__sym {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 56px;
+}
+
+.symbol-table__origin {
+  color: var(--text-2);
+  min-width: 220px;
+}
+
+.symbol-table__unit {
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+/* 狭い画面では1記号を1ブロックにまとめる（記号・単位 → 意味 → 由来） */
+@media (max-width: 720px) {
+  .symbol-table thead {
+    display: none;
+  }
+
+  .symbol-table tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'sym unit'
+      'meaning meaning'
+      'origin origin';
+    gap: 2px 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .symbol-table th,
+  .symbol-table td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .symbol-table__sym {
+    grid-area: sym;
+  }
+
+  .symbol-table__unit {
+    grid-area: unit;
+    align-self: center;
+    white-space: normal;
+  }
+
+  .symbol-table__meaning {
+    grid-area: meaning;
+  }
+
+  .symbol-table__origin {
+    grid-area: origin;
+    min-width: 0;
+    font-size: 14px;
+  }
+}
+
+.beginner {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.beginner > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 14px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.beginner > summary::-webkit-details-marker {
+  display: none;
+}
+
+.beginner > summary::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  align-self: center;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+.beginner[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.beginner__title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.beginner__hint {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.beginner__body {
+  display: grid;
+  gap: 22px;
+  padding: 0 20px 22px;
+}
+
+.beginner__body h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+}
+
+.beginner__body p + p {
+  margin-top: 8px;
+}
+
+.beginner__body p,
+.beginner__body li,
+.beginner__terms dd {
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.beginner__terms {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.beginner__terms div {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 3fr);
+  gap: 12px;
+}
+
+.beginner__terms dt {
+  font-weight: 700;
+}
+
+.beginner__terms dd {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.beginner__example-title {
+  font-weight: 500;
+}
+
+.beginner__steps,
+.beginner__body ul {
+  margin: 6px 0 0;
+  padding-left: 1.4em;
+}
+
+.beginner__steps li {
+  font-variant-numeric: tabular-nums;
+}
+
+.beginner__body li + li {
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .formula {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .formula__title {
+    grid-row: auto;
+  }
+
+  .beginner__terms div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .beginner > summary,
+  .beginner__body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media print {
+  .beginner {
+    display: none;
+  }
+}
