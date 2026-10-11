@@ -5,20 +5,31 @@ import { autoDigits, excelNumFmt, formatValue } from './format';
 /**
  * 計算書シートの列構成（A4 縦に収まる幅）。
  * 公的な計算書にならい、左から「項目 → 記号 → 計算式と代入 → 値 → 単位 → 根拠・備考」と読めるように並べる。
+ * 明細表の列を多く取れるよう、計算式と根拠・備考は2列ずつの結合にしている（Excel の列は A〜I の9列）。
  */
+export const SHEET_WIDTHS = [4.5, 19, 6.5, 13.25, 13.25, 11, 9.5, 8, 8] as const;
+
 export const COLUMNS = [
-  { header: 'No.', width: 4.5 },
-  { header: '項目', width: 19 },
-  { header: '記号', width: 6.5 },
-  { header: '計算式・代入', width: 26.5 },
-  { header: '値', width: 11 },
-  { header: '単位', width: 9.5 },
-  { header: '根拠・備考', width: 16 },
+  { header: 'No.', from: 1, to: 1 },
+  { header: '項目', from: 2, to: 2 },
+  { header: '記号', from: 3, to: 3 },
+  { header: '計算式・代入', from: 4, to: 5 },
+  { header: '値', from: 6, to: 6 },
+  { header: '単位', from: 7, to: 7 },
+  { header: '根拠・備考', from: 8, to: 9 },
 ] as const;
 
+/** 列の幅の合計（列見出しの番号で指定。結合した列は合計する） */
+export function columnWidth(i: number): number {
+  const c = COLUMNS[i];
+  let w = 0;
+  for (let k = c.from; k <= c.to; k++) w += SHEET_WIDTHS[k - 1];
+  return w;
+}
+
 /** 値を置く列 */
-export const VALUE_COL = 'E';
-/** 計算式と代入を置く列 */
+export const VALUE_COL = 'F';
+/** 計算式と代入を置く列（E 列と結合） */
 export const EXPR_COL = 'D';
 /** 列見出しの行番号（1〜4行目は表題欄）。データ行はこの次の行から並ぶ */
 export const HEADER_ROW = 5;
@@ -56,10 +67,12 @@ export interface TableLayout {
   colLetters: string[];
   /** 行ごと・列ごとの Excel 式（計算列のみ。先頭の = は付けない） */
   formulas: (string | undefined)[][];
+  /** 行ごと・列ごとのセルの値（判定の列は「適合／不適合」に置き換える） */
+  values: (number | string)[][];
 }
 
-/** 明細表に使える列（B〜G の6列） */
-export const TABLE_COLS = ['B', 'C', 'D', 'E', 'F', 'G'] as const;
+/** 明細表に使える列（B〜I の8列） */
+export const TABLE_COLS = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'] as const;
 const RANGE = /\{([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)\}/g;
 const SAME_ROW = /\{@([A-Za-z_][A-Za-z0-9_]*)\}/g;
 
@@ -177,20 +190,27 @@ export function layoutRows(rows: SheetRow[]): LaidOutRow[] {
       const formulas = tr.rows.map((_, ri) =>
         cols.map((c) =>
           c.formula
-            ? resolve(
+            ? (c.format === 'judge' ? judgeFormula : (f: string) => f)(resolve(
                 c.formula.replace(SAME_ROW, (_m, k: string) => {
                   const ci = cols.findIndex((x) => x.key === k);
                   if (ci < 0) throw new Error(`明細表 ${tr.key} に列 ${k} がありません`);
                   return `${TABLE_COLS[ci]}${t.firstRow + ri}`;
                 }),
-              )
+              ))
             : undefined,
         ),
       );
       return {
         ...p,
         cellValue: '',
-        table: { headerRow: t.headerRow, firstRow: t.firstRow, lastRow: t.lastRow, colLetters: cols.map((_, i) => TABLE_COLS[i]), formulas },
+        table: {
+          headerRow: t.headerRow,
+          firstRow: t.firstRow,
+          lastRow: t.lastRow,
+          colLetters: cols.map((_, i) => TABLE_COLS[i]),
+          formulas,
+          values: tr.rows.map((vals) => vals.map((v, ci) => (cols[ci].format === 'judge' ? judgeValue(v) : v))),
+        },
       };
     }
     if (p.row.kind === 'input') return { ...p, cellValue: p.row.value };

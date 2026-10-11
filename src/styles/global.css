@@ -1678,6 +1678,17 @@ h1.page-head {
   text-align: right;
 }
 
+.detail__table td.detail__judge {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.judge.judge--sm {
+  font-size: 0.8125rem;
+  padding: 1px 8px;
+  gap: 3px;
+}
+
 .detail__table th {
   font-weight: 500;
   color: var(--text-2);

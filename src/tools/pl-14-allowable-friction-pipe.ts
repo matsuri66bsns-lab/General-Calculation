@@ -154,11 +154,12 @@ export const allowableFrictionPipe: ToolDef = {
       const D = Number(r.D);
       const L = Number(r.L);
       const i = hazenWilliamsHead(Q / 60000, D / 1000, 1, C) * RHO_G;
-      return [String(r.name), Q, D, L, i, i * L * (1 + k)];
+      const vel = Q / 60000 / ((Math.PI * (D / 1000) ** 2) / 4);
+      return [String(r.name), Q, D, L, vel, i, i * L * (1 + k), i <= R ? 'OK' : 'NG'];
     });
-    const iMax = rows.length ? Math.max(...rows.map((r) => r[4] as number)) : 0;
+    const iMax = rows.length ? Math.max(...rows.map((r) => r[5] as number)) : 0;
     const sumL = rows.reduce((a, r) => a + (r[3] as number), 0);
-    const sumDp = rows.reduce((a, r) => a + (r[5] as number), 0);
+    const sumDp = rows.reduce((a, r) => a + (r[6] as number), 0);
 
     s.section('区間ごとの確認')
       .input('C', '流速係数', C, { symbol: 'C', note: PIPE_LABEL[str(v, 'pipe')] })
@@ -171,6 +172,15 @@ export const allowableFrictionPipe: ToolDef = {
           { key: 'D', label: '内径', symbol: 'D', unit: 'mm' },
           { key: 'L', label: '直管長', symbol: 'L', unit: 'm' },
           {
+            key: 'v',
+            label: '流速',
+            symbol: 'v',
+            unit: 'm/s',
+            digits: 2,
+            expr: '({@Q} ÷ 60000) ÷ (π × ({@D} ÷ 1000)² ÷ 4)',
+            formula: '({@Q}/60000)/(PI()*({@D}/1000)^2/4)',
+          },
+          {
             key: 'i',
             label: '単位摩擦損失',
             symbol: 'i',
@@ -180,9 +190,10 @@ export const allowableFrictionPipe: ToolDef = {
             formula: '10.67*({@Q}/60000)^1.85/({C}^1.85*({@D}/1000)^4.87)*9.80665',
           },
           { key: 'dp', label: '区間の損失', symbol: 'Δp', unit: 'kPa', digits: 2, expr: '{@i} × {@L} × (1 + {k})', formula: '{@i}*{@L}*(1+{k})' },
+          { key: 'ok', label: '判定', format: 'judge', expr: '{@i} ≤ {R}', formula: 'IF({@i}<={R},"OK","NG")' },
         ],
         rows,
-        { note: 'i はヘーゼン・ウィリアムス式、Δp は局部損失を割増率 k で見込んだ値' },
+        { note: 'i はヘーゼン・ウィリアムス式、Δp は局部損失を割増率 k で見込んだ値。判定は i ≤ R' },
       )
       .calc('iMax', '単位摩擦損失の最大値', { symbol: 'imax', unit: 'kPa/m', value: iMax, expr: 'max(i)', formula: 'MAX({sec:i})', digits: 3 })
       .judge('okR', '全区間で単位摩擦損失が許容摩擦抵抗以下', iMax <= R, { expr: '{iMax} ≤ {R}', formula: 'IF({iMax}<={R},"OK","NG")' })
@@ -196,7 +207,7 @@ export const allowableFrictionPipe: ToolDef = {
     if (dPa <= 0) {
       s.warn('摩擦損失に使える圧力が 0 以下です。起点の圧力が足りないため、どの管径でも末端の器具の必要圧力を確保できません。加圧ポンプの採用や高置タンクの高さを見直してください。');
     }
-    const ng = rows.filter((r) => (r[4] as number) > R).map((r) => String(r[0]) || '（名称なし）');
+    const ng = rows.filter((r) => (r[5] as number) > R).map((r) => String(r[0]) || '（名称なし）');
     if (ng.length && dPa > 0) s.warn(`単位摩擦損失が許容摩擦抵抗 R を超える区間があります（${ng.join('、')}）。その区間の管径を1サイズ太くしてください。`);
     if (rows.length === 0) s.warn('区間が入力されていません。起点から末端の器具までの区間を表に入れてください。');
     else if (Math.abs(sumL - L1) > L1 * 0.005) {
