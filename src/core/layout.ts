@@ -21,6 +21,20 @@ export interface LaidOutRow {
   excelRow: number;
   /** calc 行のみ。セル番地に置き換え済みの Excel 式（先頭の = は付けない） */
   formula?: string;
+  /** Excel のセルに入れる値（計算結果のキャッシュ）。判定は「適合／不適合」に置き換える */
+  cellValue: number | string;
+}
+
+/** 判定の表記。画面と同じく、計算書でも「適合／不適合」で表す */
+export const JUDGE_TEXT = { OK: '適合', NG: '不適合' } as const;
+
+/** 判定の式の "OK" / "NG" を、計算書の表記に置き換える */
+function judgeFormula(formula: string): string {
+  return formula.replace(/"OK"/g, `"${JUDGE_TEXT.OK}"`).replace(/"NG"/g, `"${JUDGE_TEXT.NG}"`);
+}
+
+function judgeValue(v: number | string): number | string {
+  return v === 'OK' ? JUDGE_TEXT.OK : v === 'NG' ? JUDGE_TEXT.NG : v;
 }
 
 /**
@@ -40,7 +54,15 @@ export function layoutRows(rows: SheetRow[]): LaidOutRow[] {
     if (!c) throw new Error(`式が未定義のキーを参照しています: ${key}`);
     return c;
   };
-  return placed.map((p) =>
-    p.row.kind === 'calc' ? { ...p, formula: resolveFormula(p.row.formula, cellOf) } : p,
-  );
+  return placed.map((p) => {
+    if (p.row.kind === 'section') return { ...p, cellValue: '' };
+    if (p.row.kind === 'input') return { ...p, cellValue: p.row.value };
+    const isJudge = p.row.format === 'judge';
+    const formula = resolveFormula(p.row.formula, cellOf);
+    return {
+      ...p,
+      formula: isJudge ? judgeFormula(formula) : formula,
+      cellValue: isJudge ? judgeValue(p.row.value) : p.row.value,
+    };
+  });
 }

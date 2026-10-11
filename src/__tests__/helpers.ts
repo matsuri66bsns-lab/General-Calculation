@@ -51,7 +51,7 @@ export function expectExcelMatches(result: CalcResult, label = '') {
     for (const l of laid) {
       if (l.row.kind !== 'calc') continue;
       const got = hf.getCellValue({ sheet: 0, row: l.excelRow - 1, col: 2 });
-      const want = l.row.value;
+      const want = l.cellValue;
       const msg = `${label} ${l.row.key}: ${l.formula} → ${JSON.stringify(got)}（画面の値 ${JSON.stringify(want)}）`;
       if (typeof want === 'number') {
         expect(typeof got, msg).toBe('number');

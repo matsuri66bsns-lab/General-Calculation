@@ -904,6 +904,16 @@ h1.page-head {
   background: color-mix(in srgb, var(--on-chrome) 10%, transparent);
 }
 
+.btn--outline {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--field);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 6%, var(--surface));
+}
+
 .btn--icon {
   width: 44px;
   padding: 0;
@@ -1535,6 +1545,109 @@ h1.page-head {
 .dialog__empty {
   padding: 24px;
   text-align: center;
+  color: var(--text-2);
+}
+
+/* =========================================================
+   Excel 出力ダイアログ
+   ========================================================= */
+.export-dialog {
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-backdrop:has(.export-dialog) {
+  align-items: center;
+  padding-top: 16px;
+}
+
+.export-dialog form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.export-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 12px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.export-dialog__head h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.export-dialog__body {
+  overflow-y: auto;
+  padding: 8px 24px 16px;
+}
+
+.export-dialog__group {
+  border: 0;
+  margin: 0;
+  padding: 12px 0 4px;
+  display: grid;
+  gap: 12px;
+}
+
+.export-dialog__group + .export-dialog__group {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+}
+
+.export-dialog__group legend {
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.export-dialog__group .muted.small {
+  margin: 0;
+}
+
+.export-dialog__error {
+  margin: 0 24px 12px;
+}
+
+.export-dialog__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--line);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.check input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.check__label {
+  display: block;
+  font-weight: 700;
+}
+
+.check__desc {
+  display: block;
+  font-size: 14px;
   color: var(--text-2);
 }
 

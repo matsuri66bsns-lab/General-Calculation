@@ -12,6 +12,8 @@ import { FieldList } from '../components/Fields';
 import { CalcTable, Highlights, Warnings } from '../components/ResultView';
 import { CategoryTag } from '../components/CategoryTag';
 import { BeginnerGuide, FormulaDoc } from '../components/ToolDocs';
+import { ExportDialog } from '../components/ExportDialog';
+import type { ExportOptions, ProjectInfo } from '../core/project';
 import { Icon } from '../components/Icon';
 import { SITE_NAME } from '../components/Sidebar';
 import { NotFound } from './NotFound';
@@ -32,6 +34,7 @@ function ToolView({ tool }: { tool: ToolDef }) {
   const { isFavorite, toggle } = useFavorites();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     recordVisit(tool.id);
@@ -61,13 +64,14 @@ function ToolView({ tool }: { tool: ToolDef }) {
       : [{ text: '入力を確認してください', tone: 'ng' }, { text: `根拠：${tool.references[0]}` }],
   );
 
-  const onExport = async () => {
+  const onExport = async (project: ProjectInfo, options: ExportOptions) => {
     if (!result) return;
     setExporting(true);
     setExportError(null);
     try {
       const { exportExcel } = await import('../core/excel');
-      await exportExcel(tool, result, doc);
+      await exportExcel(tool, result, { doc, project, options });
+      setExportOpen(false);
     } catch (e) {
       console.error(e);
       setExportError('Excel ファイルを作成できませんでした。時間をおいて、もう一度お試しください。');
@@ -101,8 +105,8 @@ function ToolView({ tool }: { tool: ToolDef }) {
             <p className="print-only">作成日時：{printedAt}</p>
           </div>
           <div className="tool-band__actions no-print">
-            <button type="button" className="btn btn--inverse" onClick={onExport} disabled={!result || exporting}>
-              <Icon name="download" size={16} /> {exporting ? '作成中…' : 'Excel 出力'}
+            <button type="button" className="btn btn--inverse" onClick={() => setExportOpen(true)} disabled={!result}>
+              <Icon name="download" size={16} /> Excel 出力
             </button>
             <button type="button" className="btn btn--outline-inverse" onClick={() => window.print()} disabled={!result}>
               <Icon name="print" size={16} /> 印刷
@@ -137,7 +141,6 @@ function ToolView({ tool }: { tool: ToolDef }) {
             <div className="panel__head">
               <h2 id="results-h">計算結果</h2>
             </div>
-            {exportError && <p className="alert">{exportError}</p>}
             {result ? (
               <>
                 <Highlights result={result} />
@@ -192,6 +195,8 @@ function ToolView({ tool }: { tool: ToolDef }) {
 
         <BeginnerGuide doc={tool.beginner} />
       </div>
+
+      <ExportDialog open={exportOpen} busy={exporting} error={exportError} onClose={() => setExportOpen(false)} onExport={onExport} />
     </>
   );
 }

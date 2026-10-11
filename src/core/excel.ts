@@ -1,4 +1,5 @@
 import type { CalcResult, ToolDef, ToolDoc } from './types';
+import type { ExportOptions, ProjectInfo } from './project';
 import { COLUMNS, HEADER_ROW, layoutRows, VALUE_COL } from './layout';
 import { excelNumFmt } from './format';
 import { exprSymbolic } from './formula';
@@ -24,7 +25,11 @@ function fileStamp(d: Date) {
  * 入力値は値として、計算結果は Excel の関数として書き込むので、
  * Excel 上で入力値（黄色のセル）を変えると結果も再計算される。
  */
-export async function exportExcel(tool: ToolDef, result: CalcResult, doc?: ToolDoc): Promise<void> {
+export async function exportExcel(
+  tool: ToolDef,
+  result: CalcResult,
+  { doc }: { doc?: ToolDoc; project: ProjectInfo; options: ExportOptions },
+): Promise<void> {
   // exceljs は大きいので、出力するときにだけ読み込む
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
@@ -53,7 +58,7 @@ export async function exportExcel(tool: ToolDef, result: CalcResult, doc?: ToolD
     cell.border = { bottom: { style: 'thin', color: { argb: COLOR.border } } };
   });
 
-  for (const { row, excelRow, formula } of layoutRows(result.rows)) {
+  for (const { row, excelRow, formula, cellValue } of layoutRows(result.rows)) {
     const xr = ws.getRow(excelRow);
     if (row.kind === 'section') {
       xr.getCell(1).value = row.label;
@@ -76,7 +81,7 @@ export async function exportExcel(tool: ToolDef, result: CalcResult, doc?: ToolD
       v.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR.inputBg } };
     } else {
       // result にキャッシュ値を入れておくと、再計算しないビューアでも値が見える
-      v.value = { formula: formula!, result: row.value };
+      v.value = { formula: formula!, result: cellValue };
       xr.getCell(5).value = exprSymbolic(row.expr, result.rows);
       if (row.format === 'judge') {
         v.font = { bold: true, color: { argb: row.value === 'OK' ? COLOR.ok : COLOR.ng } };
@@ -96,8 +101,8 @@ export async function exportExcel(tool: ToolDef, result: CalcResult, doc?: ToolD
     ws.addConditionalFormatting({
       ref,
       rules: [
-        { type: 'containsText', operator: 'containsText', text: 'NG', priority: 1, style: { font: { color: { argb: COLOR.ng }, bold: true } } },
-        { type: 'containsText', operator: 'containsText', text: 'OK', priority: 2, style: { font: { color: { argb: COLOR.ok }, bold: true } } },
+        { type: 'containsText', operator: 'containsText', text: '不適合', priority: 1, style: { font: { color: { argb: COLOR.ng }, bold: true } } },
+        { type: 'containsText', operator: 'containsText', text: '適合', priority: 2, style: { font: { color: { argb: COLOR.ok }, bold: true } } },
       ],
     });
   }
