@@ -1,4 +1,4 @@
-import type { BeginnerDoc, SymbolDoc, ToolDoc } from '../../core/types';
+import type { BeginnerDoc, ToolDoc } from '../../core/types';
 import { HW_SYMBOLS } from './pl-03';
 
 export interface FixtureDef {
@@ -28,26 +28,19 @@ export const PL02_FIXTURES: FixtureDef[] = [
   { key: 'shower', label: 'シャワー', n: '0', u: '4', hints: [{ label: '公衆用 目安 4', value: 4 }, { label: '私室用 目安 2', value: 2 }] },
 ];
 
-function fixtureSymbols(list: FixtureDef[], unitName: string, unitOrigin: string): SymbolDoc[] {
-  return list.flatMap((f, i) => [
-    { symbol: `n${sub(i)}`, origin: `number（数）の頭文字 n に器具の番号を添えた本サイトの表記`, meaning: `${f.label}の個数`, unit: '個' },
-    { symbol: `u${sub(i)}`, origin: `unit（単位）の頭文字 u に器具の番号を添えた本サイトの表記（${unitOrigin}）`, meaning: `${f.label}の${unitName}`, unit: '—' },
-  ]);
-}
-
-export { fixtureSymbols };
-
 export function pl02Doc(): ToolDoc {
   return {
     formulas: [
-      { title: '給水負荷単位の合計（SHASE-S 206）', expr: 'ΣFU = n₁ × u₁ + n₂ × u₂ + …', body: '器具ごとに「個数 × 器具給水負荷単位」を求めて合計します。器具給水負荷単位は、器具の使用頻度と1回の水量をもとに、洗面器などを基準にした重みです。値は SHASE-S 206 の表（公衆用・私室用の別）から入力します。' },
+      { title: '給水負荷単位の合計（SHASE-S 206）', expr: 'ΣFU = Σ(n × u)', body: '器具ごとに「個数 × 器具給水負荷単位」を求めて合計します。器具給水負荷単位は、器具の使用頻度と1回の水量をもとに、洗面器などを基準にした重みです。値は SHASE-S 206 の表（公衆用・私室用の別）から入力します。' },
       { title: '同時使用流量', expr: 'Qp = 線図から読み取った値', body: 'すべての器具が同時に使われることはないため、ΣFU から SHASE-S 206 の同時使用流量線図で流量を読み取ります。洗浄弁の多い系統と少ない系統で曲線が異なります。' },
       { title: '必要内径', expr: 'Dr = √(4 × Qp ÷ 60000 ÷ (π × va)) × 1000', body: '流速を目標流速 va 以下にするための最小の内径です。流量 Qp（L/min）を m³/s に直し、断面積 = 流量 ÷ 流速 から直径を逆算しています。' },
       { title: '流速の確認', expr: 'v = (Qp ÷ 60000) ÷ (π × (D ÷ 1000)² ÷ 4)、 判定 v ≤ va', body: '選んだ管の内径で実際の流速を求め、目標流速以下なら OK とします。' },
       { title: '単位摩擦損失（ヘーゼン・ウィリアムス式）', expr: 'i = 10.67 × Q′^1.85 ÷ (C^1.85 × D′^4.87) × 9.80665', body: '選んだ管の 1 m 当たりの摩擦損失です。Q′ は m³/s、D′ は m に直した値です（PL-03 と同じ式）。' },
     ],
     symbols: [
-      ...fixtureSymbols(PL02_FIXTURES, '器具給水負荷単位', 'ここでは器具給水負荷単位'),
+      { symbol: 'n', origin: 'number（数）の頭文字', meaning: '器具の個数（明細の各行）', unit: '個' },
+      { symbol: 'u', origin: 'unit（単位）の頭文字。本サイトの表記', meaning: '器具給水負荷単位（明細の各行。SHASE-S 206 の表の値）', unit: '—' },
+      { symbol: 'FU', origin: 'fixture unit（器具単位）の略。SHASE-S 206 の用語', meaning: '明細の各行の給水負荷単位（n × u）', unit: '—' },
       { symbol: 'ΣFU', origin: 'Σ（シグマ：合計）と FU（fixture unit：器具単位）。SHASE-S 206 の用語', meaning: '給水負荷単位の合計', unit: '—' },
       { symbol: 'Qp', origin: 'Q（流量の慣用記号）に p（peak：ピーク）を添えた本サイトの表記', meaning: '同時使用流量（線図から読み取った値）', unit: 'L/min' },
       { symbol: 'va', origin: 'v（velocity：速度）に a（allowable：許容）を添えた本サイトの表記', meaning: '目標とする最大流速', unit: 'm/s' },

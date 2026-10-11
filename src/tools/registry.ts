@@ -18,8 +18,13 @@ import { boosterPumpHead } from './pl-04-booster-pump-head';
 import { hotWaterSupply } from './pl-05-hot-water-supply';
 import { drainagePipe } from './pl-06-drainage-pipe';
 import { roofRainwater } from './pl-09-roof-rainwater';
+import { drainagePump } from './pl-10-drainage-pump';
 import { septicTankPopulation } from './pl-11-septic-tank-population';
 import { toiletFixtureCount } from './pl-12-toilet-fixture-count';
+import { allowableFrictionPipe } from './pl-14-allowable-friction-pipe';
+import { instantaneousWaterHeater } from './pl-15-instantaneous-water-heater';
+import { hotWaterCirculationPump } from './pl-16-hot-water-circulation-pump';
+import { emergencyWater } from './pl-17-emergency-water';
 import { voltageDrop } from './el-01-voltage-drop';
 import { powerCurrent } from './el-02-power-current';
 import { allowableCurrent } from './el-03-allowable-current';
@@ -69,8 +74,13 @@ export const TOOLS: ToolDef[] = [
   hotWaterSupply,
   drainagePipe,
   roofRainwater,
+  drainagePump,
   septicTankPopulation,
   toiletFixtureCount,
+  allowableFrictionPipe,
+  instantaneousWaterHeater,
+  hotWaterCirculationPump,
+  emergencyWater,
   voltageDrop,
   powerCurrent,
   allowableCurrent,

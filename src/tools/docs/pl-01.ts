@@ -1,12 +1,46 @@
-import type { BeginnerDoc, ToolDoc } from '../../core/types';
+import type { BeginnerDoc, SymbolDoc, ToolDoc, Values } from '../../core/types';
 
-export function pl01Doc(): ToolDoc {
+/** 瞬時最大予想給水量の求め方（画面の切り替えと計算書の表示に使う） */
+export const QP_METHOD_LABEL: Record<string, string> = {
+  binran: '便覧（時間平均 × k₂）',
+  kijun: '設計基準（時間最大 × K₂）',
+};
+
+export const K2_KIJUN_HELP =
+  '瞬時最大予想給水量 = K₂ × 時間最大予想給水量 ÷ 60（建築設備設計基準、計算書作成の手引 様式 機-101 の方式）。候補の 1.5〜2.0 は目安で、便覧の k₂（3〜4）を時間最大係数 k₁（2.0 程度）で割った値に当たります。公開されている設計基準の本文（令和6年版 第5編 第2章）には係数の値が載っていないため、設計基準の原文で確認してください。';
+
+const QP_DOC = {
+  binran: {
+    formula: {
+      title: '瞬時最大予想給水量（空気調和・衛生工学便覧の方式）',
+      expr: 'Qp = k₂ × Qh × 1000 ÷ 60',
+      body: '数分程度の最も多く使う瞬間の流量（L/min）です。時間平均予想給水量 Qh に係数 k₂ を掛けます。k₂ は一般に 3〜4 です。給水管の太さや加圧ポンプの選定の目安に使います。',
+    },
+    symbol: { symbol: 'k₂', origin: '係数（coefficient）の慣用記号 k に番号を添えたもの', meaning: '瞬時最大係数（瞬時最大 ÷ 時間平均）', unit: '—' },
+  },
+  kijun: {
+    formula: {
+      title: '瞬時最大予想給水量（建築設備設計基準の方式、手引 様式 機-101）',
+      expr: 'Qp = K₂ × Qm × 1000 ÷ 60',
+      body: '数分程度の最も多く使う瞬間の流量（L/min）です。時間最大予想給水量 Qm に瞬時最大使用係数 K₂ を掛けて 60 で割ります。時間平均に掛ける便覧の k₂ とは基準が違うため、K₂ は k₂ より小さな値になります。値は設計基準の原文で確認してください。',
+    },
+    symbol: {
+      symbol: 'K₂',
+      origin: '係数（coefficient）を表す K に番号を添えたもの。建築設備設計基準・計算書作成の手引の記号',
+      meaning: '瞬時最大使用係数（瞬時最大 ÷ 時間最大）',
+      unit: '—',
+    },
+  },
+} satisfies Record<string, { formula: ToolDoc['formulas'][number]; symbol: SymbolDoc }>;
+
+export function pl01Doc(v: Values): ToolDoc {
+  const qp = QP_DOC[v.qpm === 'kijun' ? 'kijun' : 'binran'];
   return {
     formulas: [
       { title: '1日使用水量', expr: 'Qd = N × q ÷ 1000', body: '使用人員に1人1日当たりの単位給水量（L）を掛け、1000 で割って m³ にします。単位給水量は建物用途ごとの目安値（空気調和・衛生工学便覧、建築設備設計基準）から選びます。' },
       { title: '時間平均予想給水量', expr: 'Qh = Qd ÷ T', body: '1日の水を、使用時間 T で均等に使ったと仮定した1時間あたりの量です。' },
-      { title: '時間最大予想給水量', expr: 'Qm = k₁ × Qh', body: '使用が集中する時間帯の1時間あたりの量です。係数 k₁ は一般に 1.5〜2.0 です。揚水ポンプや高置水槽の大きさを決める基準になります。' },
-      { title: '瞬時最大予想給水量', expr: 'Qp = k₂ × Qh × 1000 ÷ 60', body: '数分程度の最も多く使う瞬間の流量（L/min）です。係数 k₂ は一般に 3〜4 です。給水管の太さや加圧ポンプの選定に使います。' },
+      { title: '時間最大予想給水量', expr: 'Qm = k₁ × Qh', body: '使用が集中する時間帯の1時間あたりの量です。係数 k₁ は一般に 1.5〜2.0 です。建築設備設計基準（第5編 第2章 第3節・第4節）では、受水タンク・高置タンクの容量と揚水用ポンプの揚水量をこの量に基づいて算定します。' },
+      qp.formula,
       { title: '受水槽の有効容量', expr: 'Vs = Qd × r', body: '水道から受けた水をためる水槽です。一般に1日使用水量の 4/10〜6/10（r = 0.4〜0.6）とします。大き過ぎると水が滞留して水質が悪くなります。' },
       { title: '高置水槽の有効容量', expr: 'Ve = Qm × t', body: '屋上などに置き、重力で各階へ給水する水槽です。一般に時間最大予想給水量の 0.5〜1.0 時間分とします。' },
       { title: '揚水ポンプ吐出量', expr: 'Qpu = Qm × 1000 ÷ 60', body: '受水槽から高置水槽へ水を上げるポンプの流量です。時間最大予想給水量を L/min に直した値を基準にします。' },
@@ -16,7 +50,7 @@ export function pl01Doc(): ToolDoc {
       { symbol: 'q', origin: '小文字の q は「単位当たりの量」を表す慣用記号', meaning: '1人1日当たりの単位給水量', unit: 'L/(人·日)' },
       { symbol: 'T', origin: 'Time（時間）の頭文字', meaning: '1日平均使用時間', unit: 'h' },
       { symbol: 'k₁', origin: '係数（coefficient）の慣用記号 k に番号を添えたもの', meaning: '時間最大係数（時間最大 ÷ 時間平均）', unit: '—' },
-      { symbol: 'k₂', origin: '同上', meaning: '瞬時最大係数（瞬時最大 ÷ 時間平均）', unit: '—' },
+      qp.symbol,
       { symbol: 'r', origin: 'ratio（比率）の頭文字。本サイトの表記', meaning: '受水槽容量の比率（1日使用水量に対して）', unit: '—' },
       { symbol: 't', origin: 'time（時間）の頭文字', meaning: '高置水槽の貯留時間', unit: 'h' },
       { symbol: 'Qd', origin: 'Q（流量の慣用記号）に d（day：日）を添えたもの', meaning: '1日使用水量', unit: 'm³/日' },
@@ -50,6 +84,7 @@ export const pl01Beginner: BeginnerDoc = {
       '時間最大 Qm = 2.0 × 2.22 ≒ 4.44 m³/h',
       '受水槽 Vs = 20 × 0.5 = 10 m³、高置水槽 Ve = 4.44 × 0.5 ≒ 2.22 m³',
       '揚水ポンプ Qpu = 4.44 × 1000 ÷ 60 ≒ 74 L/min',
+      '瞬時最大 Qp = 4 × 2.22 × 1000 ÷ 60 ≒ 148 L/min（便覧の方式。設計基準の方式で K₂ = 2.0 なら 2.0 × 4.44 × 1000 ÷ 60 ≒ 148 L/min）',
     ],
   },
   pitfalls: [
@@ -57,5 +92,6 @@ export const pl01Beginner: BeginnerDoc = {
     '有効容量と水槽の外形容量を混同する。発注する水槽は有効容量より大きなものを選びます。',
     '受水槽を大きくし過ぎると水が滞留し、残留塩素が減って水質が悪化します。',
     'ホテルや病院は「人」ではなく「床（ベッド）」当たりの単位給水量を使います。',
+    '瞬時最大の係数を、時間平均に掛ける方式（便覧の k₂ = 3〜4）と時間最大に掛ける方式（設計基準の K₂）で取り違える。時間最大に 3〜4 を掛けると約2倍の流量になります。',
   ],
 };

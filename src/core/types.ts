@@ -59,7 +59,39 @@ export interface SelectField {
   visible?: (v: RawValues) => boolean;
 }
 
-export type Field = NumberField | SelectField;
+/** 明細表の列。text は名称などの文字、number は数値 */
+export interface TableColumn {
+  key: string;
+  label: string;
+  type: 'text' | 'number';
+  unit?: string;
+  min?: number;
+  exclusiveMin?: boolean;
+  /** 入力欄の幅の目安 */
+  width?: 'narrow' | 'wide';
+}
+
+/**
+ * 明細表（行を追加できる入力）。器具の一覧や負荷の一覧など、同じ項目を行で並べて集計するときに使う。
+ * 生の値は行の配列を JSON 文字列にして持つ（RawValues は文字列だけのため）
+ */
+export interface TableField {
+  type: 'table';
+  key: string;
+  label: string;
+  columns: TableColumn[];
+  /** 行を追加したときの初期値 */
+  newRow: Record<string, string>;
+  minRows?: number;
+  maxRows?: number;
+  help?: string;
+  visible?: (v: RawValues) => boolean;
+}
+
+export type Field = NumberField | SelectField | TableField;
+
+/** 明細表の1行（検証後）。number 列は数値、text 列は文字 */
+export type TableRowValues = Record<string, number | string>;
 
 export interface InputRow {
   kind: 'input';
@@ -92,7 +124,40 @@ export interface SectionRow {
   label: string;
 }
 
-export type SheetRow = InputRow | CalcRow | SectionRow;
+/** 計算書の明細表の列。expr・formula があれば計算列（同じ行の列を {@列} で参照する） */
+export interface SheetTableColumn {
+  key: string;
+  label: string;
+  symbol?: string;
+  unit?: string;
+  digits?: number;
+  /** 計算列の表示用の式（例: "{@n} × {@u}"） */
+  expr?: string;
+  /** 計算列の Excel 式（例: "{@n}*{@u}"）。{key} で表の外の行も参照できる */
+  formula?: string;
+}
+
+/**
+ * 明細表の行。表の後ろの calc 行から、列全体を {表のkey:列のkey} で参照できる（例: "SUM({fx:fu})"）
+ */
+export interface SheetTableRow {
+  kind: 'table';
+  key: string;
+  label: string;
+  columns: SheetTableColumn[];
+  /** 行ごとの値（columns と同じ順） */
+  rows: (number | string)[][];
+  note?: string;
+}
+
+export type SheetRow = InputRow | CalcRow | SectionRow | SheetTableRow;
+
+/** 値を1つ持つ行（入力値・計算結果） */
+export type ValueRow = InputRow | CalcRow;
+
+export function isValueRow(r: SheetRow): r is ValueRow {
+  return r.kind === 'input' || r.kind === 'calc';
+}
 
 export interface CalcResult {
   rows: SheetRow[];

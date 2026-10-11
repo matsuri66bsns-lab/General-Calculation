@@ -5,8 +5,9 @@
 import { expect } from 'vitest';
 import { HyperFormula } from 'hyperformula';
 import { EXPR_COL, layoutRows, VALUE_COL } from '../core/layout';
-import { parseValues } from '../core/values';
+import { parseValues, rawTableRows } from '../core/values';
 import { placeholders } from '../core/formula';
+import { isValueRow } from '../core/types';
 import type { CalcResult, RawValues, ToolDef, Values } from '../core/types';
 
 /** 既定値に上書きを加えて計算する。select の apply も画面と同じように反映する */
@@ -29,8 +30,8 @@ export function run(tool: ToolDef, overrides: RawValues = {}): CalcResult {
 
 /** 計算書の行の値を key で取り出す */
 export function value(result: CalcResult, key: string): number | string {
-  const row = result.rows.find((r) => r.kind !== 'section' && r.key === key);
-  if (!row || row.kind === 'section') throw new Error(`no row ${key}`);
+  const row = result.rows.find((r) => isValueRow(r) && r.key === key);
+  if (!row || !isValueRow(row)) throw new Error(`no row ${key}`);
   return row.value;
 }
 
@@ -43,8 +44,20 @@ export function expectExcelMatches(result: CalcResult, label = '') {
   const last = Math.max(...laid.map((l) => l.excelRow));
   const V = VALUE_COL.charCodeAt(0) - 65;
   const X = EXPR_COL.charCodeAt(0) - 65;
-  const grid: (string | number | null)[][] = Array.from({ length: last }, () => Array(V + 1).fill(null));
+  const lastRow = Math.max(last, ...laid.map((l) => l.table?.lastRow ?? 0));
+  const grid: (string | number | null)[][] = Array.from({ length: lastRow }, () => Array(7).fill(null));
+  const col = (letter: string) => letter.charCodeAt(0) - 65;
   for (const l of laid) {
+    if (l.row.kind === 'table' && l.table) {
+      const t = l.table;
+      l.row.columns.forEach((c, ci) => (grid[t.headerRow - 1][col(t.colLetters[ci])] = c.label));
+      l.row.rows.forEach((vals, ri) =>
+        vals.forEach((v, ci) => {
+          const f = t.formulas[ri][ci];
+          grid[t.firstRow + ri - 1][col(t.colLetters[ci])] = f ? `=${f}` : v;
+        }),
+      );
+    }
     if (l.row.kind === 'input') grid[l.excelRow - 1][l.cell.charCodeAt(0) - 65] = l.row.value;
     if (l.row.kind === 'calc') {
       grid[l.excelRow - 1][V] = `=${l.formula}`;
@@ -56,6 +69,21 @@ export function expectExcelMatches(result: CalcResult, label = '') {
   const hf = HyperFormula.buildFromArray(grid, { licenseKey: 'gpl-v3', precisionRounding: 12 });
   try {
     for (const l of laid) {
+      if (l.row.kind === 'table' && l.table) {
+        const t = l.table;
+        const tr = l.row;
+        tr.rows.forEach((vals, ri) =>
+          vals.forEach((want, ci) => {
+            const f = t.formulas[ri][ci];
+            if (!f) return;
+            const got = hf.getCellValue({ sheet: 0, row: t.firstRow + ri - 1, col: col(t.colLetters[ci]) });
+            const msg = `${label} ${tr.key}[${ri}].${tr.columns[ci].key}: ${f} → ${JSON.stringify(got)}（画面の値 ${JSON.stringify(want)}）`;
+            if (typeof want === 'number') expect(got as number, msg).toBeCloseTo(want, 6);
+            else expect(got, msg).toBe(want);
+          }),
+        );
+        continue;
+      }
       if (l.row.kind !== 'calc') continue;
       const got = hf.getCellValue({ sheet: 0, row: l.excelRow - 1, col: V });
       const want = l.cellValue;
@@ -100,6 +128,13 @@ function expectSameText(got: string, want: string, msg: string) {
 export function selectCases(tool: ToolDef): RawValues[] {
   const cases: RawValues[] = [{}];
   for (const f of tool.fields) if (f.type === 'select') for (const o of f.options) cases.push({ [f.key]: o.value });
+  // 明細表は、行を1行足した場合と、空にした場合（最低行数がなければ）も確かめる
+  for (const f of tool.fields) {
+    if (f.type !== 'table') continue;
+    const rows = rawTableRows(tool.defaults[f.key]);
+    cases.push({ [f.key]: JSON.stringify([...rows, f.newRow]) });
+    if (!f.minRows) cases.push({ [f.key]: '[]' });
+  }
   return cases;
 }
 
@@ -119,12 +154,17 @@ export function checkTool(tool: ToolDef) {
     expectExcelMatches(result, label);
 
     const seen = new Set<string>();
+    const RANGE_REF = /\{([A-Za-z_][A-Za-z0-9_]*):[A-Za-z_][A-Za-z0-9_]*\}/g;
     for (const r of result.rows) {
       if (r.kind === 'section') continue;
-      if (r.kind === 'calc') {
-        for (const k of [...placeholders(r.formula), ...placeholders(r.expr)]) {
-          expect(seen.has(k), `${label} ${r.key} が未定義の ${k} を参照`).toBe(true);
-        }
+      const templates =
+        r.kind === 'calc' ? [r.formula, r.expr] : r.kind === 'table' ? r.columns.flatMap((c) => [c.formula ?? '', c.expr ?? '']) : [];
+      for (const t of templates) {
+        for (const k of placeholders(t)) expect(seen.has(k), `${label} ${r.key} が未定義の ${k} を参照`).toBe(true);
+        for (const m of t.matchAll(RANGE_REF)) expect(seen.has(m[1]), `${label} ${r.key} が未定義の明細表 ${m[1]} を参照`).toBe(true);
+      }
+      if (r.kind === 'table') {
+        for (const row of r.rows) expect(row.length, `${label} ${r.key} の列数`).toBe(r.columns.length);
       }
       seen.add(r.key);
     }
@@ -133,9 +173,12 @@ export function checkTool(tool: ToolDef) {
     const doc = tool.doc(values);
     expect(doc.formulas.length, `${label} 計算式の解説`).toBeGreaterThan(0);
     const documented = new Set(doc.symbols.map((d) => d.symbol));
-    for (const r of result.rows) {
-      if (r.kind === 'section' || !r.symbol) continue;
-      expect(documented.has(r.symbol), `${label}：記号 ${r.symbol} の説明がない`).toBe(true);
+    const symbols = result.rows.flatMap((r) =>
+      r.kind === 'table' ? r.columns.map((c) => c.symbol) : r.kind === 'section' ? [] : [r.symbol],
+    );
+    for (const sym of symbols) {
+      if (!sym) continue;
+      expect(documented.has(sym), `${label}：記号 ${sym} の説明がない`).toBe(true);
     }
     for (const d of doc.symbols) {
       expect(d.origin.length, `${label} ${d.symbol} の由来`).toBeGreaterThan(0);

@@ -1,4 +1,4 @@
-import type { SheetRow } from './types';
+import type { SheetRow, SheetTableRow, ValueRow } from './types';
 import { exprSymbolic, placeholders, resolveFormula } from './formula';
 import { autoDigits, excelNumFmt, formatValue } from './format';
 
@@ -42,7 +42,26 @@ export interface LaidOutRow {
    * Excel 上で入力値を変えると代入式の数値も変わる。
    */
   substitution?: { formula?: string; text: string };
+  /** table 行のみ。見出しの行・データの行の範囲と、列の位置・計算列の Excel 式 */
+  table?: TableLayout;
 }
+
+export interface TableLayout {
+  /** 表の名前の行は LaidOutRow.excelRow。列見出しの行はその次 */
+  headerRow: number;
+  /** データの最初と最後の行（データがなければ first > last） */
+  firstRow: number;
+  lastRow: number;
+  /** 列ごとの列記号（B〜G） */
+  colLetters: string[];
+  /** 行ごと・列ごとの Excel 式（計算列のみ。先頭の = は付けない） */
+  formulas: (string | undefined)[][];
+}
+
+/** 明細表に使える列（B〜G の6列） */
+export const TABLE_COLS = ['B', 'C', 'D', 'E', 'F', 'G'] as const;
+const RANGE = /\{([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)\}/g;
+const SAME_ROW = /\{@([A-Za-z_][A-Za-z0-9_]*)\}/g;
 
 /** 判定の表記。画面と同じく、計算書でも「適合／不適合」で表す */
 export const JUDGE_TEXT = { OK: '適合', NG: '不適合' } as const;
@@ -63,7 +82,6 @@ function quote(s: string): string {
   return parts.length ? parts.join('&') : '""';
 }
 
-type ValueRow = Exclude<SheetRow, { kind: 'section' }>;
 
 /** 代入式の中で値を文字にする Excel の式。画面の表示（formatValue）と同じ桁数にそろえる */
 function valueText(r: ValueRow, cell: string): string {
@@ -79,7 +97,11 @@ function valueText(r: ValueRow, cell: string): string {
 const PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 
 function substitution(row: Extract<SheetRow, { kind: 'calc' }>, rows: SheetRow[], cellOf: (key: string) => string, byKey: Map<string, ValueRow>) {
-  const head = `${row.symbol && row.format !== 'judge' ? `${row.symbol} = ` : ''}${exprSymbolic(row.expr, rows)}`;
+  // 判定は公的な計算書にならい「確認：条件」と書き、値の列に判定を置く
+  const head =
+    row.format === 'judge'
+      ? `確認：${exprSymbolic(row.expr, rows)}`
+      : `${row.symbol ? `${row.symbol} = ` : ''}${exprSymbolic(row.expr, rows)}`;
   if (placeholders(row.expr).length === 0) return { text: head };
   // 判定は「2.20 ≤ 2.00」のように、それ以外は「= 30.8 × 40 …」のように代入式を書く
   const lead = row.format === 'judge' ? '' : '= ';
@@ -113,11 +135,18 @@ export function isWideText(row: SheetRow): boolean {
 export function layoutRows(rows: SheetRow[]): LaidOutRow[] {
   const cellByKey = new Map<string, string>();
   const byKey = new Map<string, ValueRow>();
+  const tables = new Map<string, { row: SheetTableRow; firstRow: number; lastRow: number; headerRow: number }>();
   let r = HEADER_ROW + 1;
   const placed = rows.map((row) => {
     const excelRow = r++;
     let cell = '';
-    if (row.kind !== 'section') {
+    if (row.kind === 'table') {
+      if (row.columns.length > TABLE_COLS.length) throw new Error(`明細表の列は ${TABLE_COLS.length} 列までです: ${row.key}`);
+      // 見出しの行の次からデータの行を並べる
+      // 1行目に表の名前、2行目に列見出し、その次からデータの行を並べる
+      tables.set(row.key, { row, headerRow: excelRow + 1, firstRow: excelRow + 2, lastRow: excelRow + 1 + row.rows.length });
+      r += row.rows.length + 1;
+    } else if (row.kind !== 'section') {
       cell = `${isWideText(row) ? EXPR_COL : VALUE_COL}${excelRow}`;
       cellByKey.set(row.key, cell);
       byKey.set(row.key, row);
@@ -129,11 +158,44 @@ export function layoutRows(rows: SheetRow[]): LaidOutRow[] {
     if (!c) throw new Error(`式が未定義のキーを参照しています: ${key}`);
     return c;
   };
+  const rangeOf = (tableKey: string, colKey: string) => {
+    const t = tables.get(tableKey);
+    if (!t) throw new Error(`式が未定義の明細表を参照しています: ${tableKey}`);
+    const i = t.row.columns.findIndex((c) => c.key === colKey);
+    if (i < 0) throw new Error(`明細表 ${tableKey} に列 ${colKey} がありません`);
+    const col = TABLE_COLS[i];
+    // データがないときは見出しのセル（文字）を指し、SUM が 0 になるようにする
+    return t.lastRow < t.firstRow ? `${col}${t.headerRow}:${col}${t.headerRow}` : `${col}${t.firstRow}:${col}${t.lastRow}`;
+  };
+  const resolve = (template: string) => resolveFormula(template.replace(RANGE, (_, t: string, c: string) => rangeOf(t, c)), cellOf);
   return placed.map((p) => {
     if (p.row.kind === 'section') return { ...p, cellValue: '' };
+    if (p.row.kind === 'table') {
+      const tr = p.row;
+      const t = tables.get(tr.key)!;
+      const cols = tr.columns;
+      const formulas = tr.rows.map((_, ri) =>
+        cols.map((c) =>
+          c.formula
+            ? resolve(
+                c.formula.replace(SAME_ROW, (_m, k: string) => {
+                  const ci = cols.findIndex((x) => x.key === k);
+                  if (ci < 0) throw new Error(`明細表 ${tr.key} に列 ${k} がありません`);
+                  return `${TABLE_COLS[ci]}${t.firstRow + ri}`;
+                }),
+              )
+            : undefined,
+        ),
+      );
+      return {
+        ...p,
+        cellValue: '',
+        table: { headerRow: t.headerRow, firstRow: t.firstRow, lastRow: t.lastRow, colLetters: cols.map((_, i) => TABLE_COLS[i]), formulas },
+      };
+    }
     if (p.row.kind === 'input') return { ...p, cellValue: p.row.value };
     const isJudge = p.row.format === 'judge';
-    const formula = resolveFormula(p.row.formula, cellOf);
+    const formula = resolve(p.row.formula);
     return {
       ...p,
       formula: isJudge ? judgeFormula(formula) : formula,

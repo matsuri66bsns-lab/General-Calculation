@@ -1,25 +1,17 @@
-import type { Field, RawValues, ToolDef } from '../core/types';
+import type { ToolDef } from '../core/types';
 import { SheetBuilder } from '../core/sheet';
-import { num, str } from '../core/values';
+import { num, str, tableRows } from '../core/values';
 import { PART_LABEL, PL06_FIXTURES, pl06Beginner, pl06Doc } from './docs/pl-06';
-import { sub } from './docs/pl-02';
 
 /** 排水管の呼び径（mm） */
 const DRAIN_SIZES = [30, 40, 50, 65, 75, 100, 125, 150, 200] as const;
 
-const fixtureFields: Field[] = PL06_FIXTURES.flatMap((f): Field[] => [
-  { type: 'number', key: `n_${f.key}`, label: `${f.label}の個数`, unit: '個', min: 0 },
-  {
-    type: 'number',
-    key: `u_${f.key}`,
-    label: `${f.label}の器具排水負荷単位`,
-    min: 0,
-    help: '候補の値は目安です。SHASE-S 206 の表で確認して入力してください。',
-    suggestions: f.hints,
-  },
-]);
+/** 器具排水負荷単位・排水口径の目安（入力欄の補足に出す） */
+const DFU_HINTS = PL06_FIXTURES.map((f) => `${f.label} ${f.hints}`).join('、');
+const D_HINTS = PL06_FIXTURES.map((f) => `${f.label} ${f.d}`).join('、');
 
-const fixtureDefaults: RawValues = Object.fromEntries(PL06_FIXTURES.flatMap((f) => [[`n_${f.key}`, f.n], [`u_${f.key}`, f.u]]));
+/** 既定の明細（個数が 0 の器具は行に入れない） */
+const fixtureDefaults = JSON.stringify(PL06_FIXTURES.filter((f) => Number(f.n) > 0).map((f) => ({ name: f.label, n: f.n, u: f.u, d: f.d })));
 
 export const drainagePipe: ToolDef = {
   id: 'PL-06',
@@ -35,7 +27,20 @@ export const drainagePipe: ToolDef = {
   ],
   publishedAt: '2026-10-10',
   fields: [
-    ...fixtureFields,
+    {
+      type: 'table',
+      key: 'fx',
+      label: '器具の明細',
+      columns: [
+        { key: 'name', label: '器具', type: 'text', width: 'wide' },
+        { key: 'n', label: '個数', type: 'number', unit: '個', min: 0, width: 'narrow' },
+        { key: 'u', label: '器具排水負荷単位', type: 'number', min: 0, width: 'narrow' },
+        { key: 'd', label: '排水口径', type: 'number', unit: 'mm', min: 0, exclusiveMin: true, width: 'narrow' },
+      ],
+      newRow: { name: '', n: '1', u: '1', d: '40' },
+      maxRows: 40,
+      help: `器具排水負荷単位は SHASE-S 206 の表から、排水口径（トラップ口径）は SHASE-S 206 の表や器具メーカーの資料から入力します。器具排水負荷単位の目安：${DFU_HINTS}。排水口径の目安（mm）：${D_HINTS}。個数 0 の行も排水口径の最大値に含めるので、つながない器具の行は削除してください。`,
+    },
     {
       type: 'select',
       key: 'part',
@@ -61,26 +66,11 @@ export const drainagePipe: ToolDef = {
       exclusiveMin: true,
       help: 'SHASE-S 206 の表から、部位・管径に応じた値を入力します。横主管は勾配、立て管は階数（3階建てを超えるかどうか、1階分の値）でも変わります。',
     },
-    {
-      type: 'number',
-      key: 'Do',
-      label: '接続する器具の最大の排水口径（トラップ口径）',
-      unit: 'mm',
-      min: 0,
-      exclusiveMin: true,
-      help: '器具メーカーの資料や SHASE-S 206 の表で、トラップの口径を確認して入力します。',
-      suggestions: [
-        { label: '32 mm', value: 32 },
-        { label: '40 mm', value: 40 },
-        { label: '50 mm', value: 50 },
-        { label: '75 mm', value: 75 },
-      ],
-    },
   ],
-  defaults: { ...fixtureDefaults, part: 'branch', D: '100', DFUa: '160', Do: '75' },
+  defaults: { fx: fixtureDefaults, part: 'branch', D: '100', DFUa: '160' },
   notes: [
     '器具排水負荷単位と許容最大排水負荷単位は SHASE-S 206 の表から入力します。本ツールは表を内蔵していません。候補の値は目安で、原文で確認してください。',
-    '排水管は、接続する器具の排水口径（トラップ口径）より細くできません。',
+    '排水管は、接続する器具の排水口径（トラップ口径）より細くできません。明細の排水口径の最大値と管径を比べます。',
     '立て管は、上の階で細くせず最下部と同じ管径で通すのが一般的です。3階建てを超える場合は、立て管全体と1階分（1ブランチ間隔）の負荷の両方を確認してください。',
     '横主管・横枝管は勾配も確認してください。',
   ],
@@ -90,40 +80,35 @@ export const drainagePipe: ToolDef = {
     const part = str(v, 'part');
     const s = new SheetBuilder();
     s.section('器具排水負荷単位');
-    const terms: { e: string; f: string }[] = [];
-    let sum = 0;
-    PL06_FIXTURES.forEach((fx, idx) => {
-      const n = num(v, `n_${fx.key}`);
-      if (n <= 0) return;
-      const u = num(v, `u_${fx.key}`);
-      sum += n * u;
-      s.input(`n_${fx.key}`, `${fx.label}の個数`, n, { symbol: `n${sub(idx)}`, unit: '個' }).input(
-        `u_${fx.key}`,
-        `${fx.label}の器具排水負荷単位`,
-        u,
-        { symbol: `u${sub(idx)}`, note: 'SHASE-S 206 の表の値' },
-      );
-      terms.push({ e: `{n_${fx.key}} × {u_${fx.key}}`, f: `{n_${fx.key}}*{u_${fx.key}}` });
-    });
-    s.calc('DFU', '排水負荷単位の合計', {
-      symbol: 'ΣDFU',
-      value: sum,
-      expr: terms.length ? terms.map((t) => t.e).join(' + ') : '0',
-      formula: terms.length ? terms.map((t) => t.f).join('+') : '0',
-      digits: 1,
-    });
-    if (terms.length === 0) s.warn('器具の個数がすべて 0 です。接続する器具の個数を入力してください。');
+    const fx = tableRows(v, 'fx');
+    const fxRows = fx.map((r) => [String(r.name), Number(r.n), Number(r.u), Number(r.d), Number(r.n) * Number(r.u)]);
+    const sum = fxRows.reduce((a, r) => a + (r[4] as number), 0);
+    const Do = fxRows.reduce((a, r) => Math.max(a, r[3] as number), 0);
+    s.table(
+      'fx',
+      '器具の明細',
+      [
+        { key: 'name', label: '器具' },
+        { key: 'n', label: '個数', symbol: 'n', unit: '個' },
+        { key: 'u', label: '器具排水負荷単位', symbol: 'u' },
+        { key: 'd', label: '排水口径', symbol: 'd', unit: 'mm' },
+        { key: 'dfu', label: '排水負荷単位', symbol: 'DFU', expr: '{@n} × {@u}', formula: '{@n}*{@u}', digits: 1 },
+      ],
+      fxRows,
+      { note: 'u は SHASE-S 206 の表の値、d は器具のトラップ口径' },
+    )
+      .calc('DFU', '排水負荷単位の合計', { symbol: 'ΣDFU', value: sum, expr: 'Σ(n × u)', formula: 'SUM({fx:dfu})', digits: 1 })
+      .calc('Do', '器具の最大の排水口径', { symbol: 'Do', unit: 'mm', value: Do, expr: 'max(d)', formula: 'MAX({fx:d})', digits: 0 });
+    if (fx.every((r) => Number(r.n) <= 0)) s.warn('器具の個数がすべて 0 です。接続する器具の個数を入力してください。');
 
     const D = Number(str(v, 'D'));
     const DFUa = num(v, 'DFUa');
-    const Do = num(v, 'Do');
     const loadOk = sum <= DFUa;
     const sizeOk = D >= Do;
     s.section(`${PART_LABEL[part]}の判定`)
       .input('part', '管の部位', PART_LABEL[part])
       .input('D', '選んだ管径', D, { symbol: 'D', unit: 'mm' })
       .input('DFUa', '許容最大排水負荷単位', DFUa, { symbol: 'DFUa', note: `SHASE-S 206 の表（${PART_LABEL[part]}・${D} mm）の値` })
-      .input('Do', '器具の最大の排水口径', Do, { symbol: 'Do', unit: 'mm' })
       .judge('okLoad', '負荷の判定', loadOk, { expr: '{DFU} ≤ {DFUa}', formula: 'IF({DFU}<={DFUa},"OK","NG")' })
       .judge('okSize', '管径の判定（排水口径以上）', sizeOk, { expr: '{D} ≥ {Do}', formula: 'IF({D}>={Do},"OK","NG")' })
       .judge('ok', '総合判定', loadOk && sizeOk, {

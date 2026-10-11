@@ -1,4 +1,5 @@
-import type { CalcResult, CalcRow, InputRow, SheetRow } from './types';
+import { isValueRow } from './types';
+import type { CalcResult, CalcRow, InputRow, SheetRow, SheetTableColumn } from './types';
 
 type InputOpts = Omit<InputRow, 'kind' | 'key' | 'label' | 'value'>;
 type CalcOpts = Omit<CalcRow, 'kind' | 'key' | 'label'>;
@@ -38,6 +39,16 @@ export class SheetBuilder {
     });
   }
 
+  /**
+   * 明細表。columns の順に rows の値を並べる。計算列は expr・formula を持ち、同じ行の列を {@列} で参照する。
+   * 表の列全体は、後ろの calc 行の formula から {表のkey:列のkey} で参照できる（例: "SUM({fx:fu})"）
+   */
+  table(key: string, label: string, columns: SheetTableColumn[], rows: (number | string)[][], opts: { note?: string } = {}): this {
+    this.assertNewKey(key);
+    this.rows.push({ kind: 'table', key, label, columns, rows, ...opts });
+    return this;
+  }
+
   highlight(...keys: string[]): this {
     this.highlightKeys.push(...keys);
     return this;
@@ -50,8 +61,8 @@ export class SheetBuilder {
 
   /** 計算済みの値を key で取り出す */
   get(key: string): number | string {
-    const row = this.rows.find((r) => r.kind !== 'section' && r.key === key);
-    if (!row || row.kind === 'section') throw new Error(`未定義のキー: ${key}`);
+    const row = this.rows.find((r) => isValueRow(r) && r.key === key);
+    if (!row || !isValueRow(row)) throw new Error(`未定義のキー: ${key}`);
     return row.value;
   }
 

@@ -1,4 +1,5 @@
-import type { SheetRow } from './types';
+import { isValueRow } from './types';
+import type { SheetRow, ValueRow } from './types';
 import { formatValue } from './format';
 
 const PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
@@ -14,8 +15,8 @@ export function resolveFormula(template: string, cellOf: (key: string) => string
 }
 
 function rowMap(rows: SheetRow[]) {
-  const map = new Map<string, Exclude<SheetRow, { kind: 'section' }>>();
-  for (const r of rows) if (r.kind !== 'section') map.set(r.key, r);
+  const map = new Map<string, ValueRow>();
+  for (const r of rows) if (isValueRow(r)) map.set(r.key, r);
   return map;
 }
 

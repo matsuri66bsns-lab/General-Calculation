@@ -1,24 +1,16 @@
-import type { Field, RawValues, ToolDef } from '../core/types';
+import type { ToolDef } from '../core/types';
 import { SheetBuilder } from '../core/sheet';
-import { num, str } from '../core/values';
-import { PL02_FIXTURES, pl02Beginner, pl02Doc, sub } from './docs/pl-02';
+import { num, str, tableRows } from '../core/values';
+import { PL02_FIXTURES, pl02Beginner, pl02Doc } from './docs/pl-02';
 import { C_HELP, PIPE_C_OPTIONS, RHO_G, hazenWilliamsHead } from './pl-03-hazen-williams';
 
 const PIPE_LABEL: Record<string, string> = Object.fromEntries(PIPE_C_OPTIONS.map((o) => [o.value, o.label]));
 
-const fixtureFields: Field[] = PL02_FIXTURES.flatMap((f): Field[] => [
-  { type: 'number', key: `n_${f.key}`, label: `${f.label}の個数`, unit: '個', min: 0 },
-  {
-    type: 'number',
-    key: `u_${f.key}`,
-    label: `${f.label}の器具給水負荷単位`,
-    min: 0,
-    help: '候補の値は目安です。SHASE-S 206 の表で確認して入力してください。',
-    suggestions: f.hints,
-  },
-]);
+/** 器具給水負荷単位の目安（入力欄の補足に出す） */
+const FU_HINTS = PL02_FIXTURES.map((f) => `${f.label} ${f.hints.map((h) => h.value).join('／')}`).join('、');
 
-const fixtureDefaults: RawValues = Object.fromEntries(PL02_FIXTURES.flatMap((f) => [[`n_${f.key}`, f.n], [`u_${f.key}`, f.u]]));
+/** 既定の明細（個数が 0 の器具は行に入れない） */
+const fixtureDefaults = JSON.stringify(PL02_FIXTURES.filter((f) => Number(f.n) > 0).map((f) => ({ name: f.label, n: f.n, u: f.u })));
 
 export const waterSupplyPipe: ToolDef = {
   id: 'PL-02',
@@ -34,7 +26,19 @@ export const waterSupplyPipe: ToolDef = {
   ],
   publishedAt: '2026-10-10',
   fields: [
-    ...fixtureFields,
+    {
+      type: 'table',
+      key: 'fx',
+      label: '器具の明細',
+      columns: [
+        { key: 'name', label: '器具', type: 'text', width: 'wide' },
+        { key: 'n', label: '個数', type: 'number', unit: '個', min: 0, width: 'narrow' },
+        { key: 'u', label: '器具給水負荷単位', type: 'number', min: 0, width: 'narrow' },
+      ],
+      newRow: { name: '', n: '1', u: '1' },
+      maxRows: 40,
+      help: `器具給水負荷単位は SHASE-S 206 の表（公衆用／私室用）から入力します。目安：${FU_HINTS}。`,
+    },
     {
       type: 'number',
       key: 'Qp',
@@ -69,7 +73,7 @@ export const waterSupplyPipe: ToolDef = {
     { type: 'select', key: 'pipe', label: '管種（流速係数の目安）', options: PIPE_C_OPTIONS, help: C_HELP },
     { type: 'number', key: 'C', label: '流速係数 C', min: 0, exclusiveMin: true },
   ],
-  defaults: { ...fixtureDefaults, Qp: '200', va: '2', D: '50', pipe: 'lined', C: '130' },
+  defaults: { fx: fixtureDefaults, Qp: '200', va: '2', D: '50', pipe: 'lined', C: '130' },
   notes: [
     '器具給水負荷単位と同時使用流量は SHASE-S 206 の表・線図から入力します。本ツールは表・線図を内蔵していません。候補の値は目安で、原文で確認してください。',
     '管径は末端から上流へ、区間ごとに接続する器具を足しながら決めます。区間ごとにこの計算を行ってください。',
@@ -80,29 +84,28 @@ export const waterSupplyPipe: ToolDef = {
   build(v) {
     const s = new SheetBuilder();
     s.section('器具給水負荷単位');
-    const terms: { e: string; f: string }[] = [];
-    let sumFU = 0;
-    PL02_FIXTURES.forEach((fx, idx) => {
-      const n = num(v, `n_${fx.key}`);
-      if (n <= 0) return;
-      const u = num(v, `u_${fx.key}`);
-      sumFU += n * u;
-      s.input(`n_${fx.key}`, `${fx.label}の個数`, n, { symbol: `n${sub(idx)}`, unit: '個' }).input(
-        `u_${fx.key}`,
-        `${fx.label}の器具給水負荷単位`,
-        u,
-        { symbol: `u${sub(idx)}`, note: 'SHASE-S 206 の表の値' },
-      );
-      terms.push({ e: `{n_${fx.key}} × {u_${fx.key}}`, f: `{n_${fx.key}}*{u_${fx.key}}` });
-    });
-    s.calc('FU', '給水負荷単位の合計', {
+    const fx = tableRows(v, 'fx');
+    const fxRows = fx.map((r) => [String(r.name), Number(r.n), Number(r.u), Number(r.n) * Number(r.u)]);
+    const sumFU = fxRows.reduce((a, r) => a + (r[3] as number), 0);
+    s.table(
+      'fx',
+      '器具の明細',
+      [
+        { key: 'name', label: '器具' },
+        { key: 'n', label: '個数', symbol: 'n', unit: '個' },
+        { key: 'u', label: '器具給水負荷単位', symbol: 'u' },
+        { key: 'fu', label: '給水負荷単位', symbol: 'FU', expr: '{@n} × {@u}', formula: '{@n}*{@u}', digits: 1 },
+      ],
+      fxRows,
+      { note: 'u は SHASE-S 206 の表の値' },
+    ).calc('FU', '給水負荷単位の合計', {
       symbol: 'ΣFU',
       value: sumFU,
-      expr: terms.length ? terms.map((t) => t.e).join(' + ') : '0',
-      formula: terms.length ? terms.map((t) => t.f).join('+') : '0',
+      expr: 'Σ(n × u)',
+      formula: 'SUM({fx:fu})',
       digits: 1,
     });
-    if (terms.length === 0) s.warn('器具の個数がすべて 0 です。接続する器具の個数を入力してください。');
+    if (fx.every((r) => Number(r.n) <= 0)) s.warn('器具の個数がすべて 0 です。接続する器具の個数を入力してください。');
 
     const Qp = num(v, 'Qp');
     const va = num(v, 'va');

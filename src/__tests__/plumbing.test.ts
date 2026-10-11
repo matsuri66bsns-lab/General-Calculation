@@ -50,8 +50,7 @@ describe('PL-02 給水負荷単位と給水管径', () => {
     expect(r.warnings.length).toBe(1);
   });
   it('器具がすべて 0 個でも計算でき、注意を出す', () => {
-    const zero = Object.fromEntries(Object.keys(waterSupplyPipe.defaults).filter((k) => k.startsWith('n_')).map((k) => [k, '0']));
-    const r = run(waterSupplyPipe, zero);
+    const r = run(waterSupplyPipe, { fx: JSON.stringify([{ name: '洗面器', n: '0', u: '2' }]) });
     expect(value(r, 'FU')).toBe(0);
     expect(r.warnings.length).toBe(1);
     expectExcelMatches(r);
@@ -92,9 +91,10 @@ describe('PL-05 給湯量・加熱能力・貯湯容量', () => {
 });
 
 describe('PL-06 排水負荷単位と排水管径', () => {
-  it('既定値：ΣDFU = 46、100 mm 横枝管で OK', () => {
+  it('既定値：ΣDFU = 46、最大の排水口径 75 mm、100 mm 横枝管で OK', () => {
     const r = run(drainagePipe);
     expect(value(r, 'DFU')).toBe(46);
+    expect(value(r, 'Do')).toBe(75);
     expect(value(r, 'okLoad')).toBe('OK');
     expect(value(r, 'okSize')).toBe('OK');
     expect(value(r, 'ok')).toBe('OK');
@@ -105,9 +105,24 @@ describe('PL-06 排水負荷単位と排水管径', () => {
     expect(value(r, 'okLoad')).toBe('NG');
     expect(value(r, 'ok')).toBe('NG');
   });
-  it('器具の排水口径より細い管は NG', () => {
-    const r = run(drainagePipe, { D: '65', Do: '75' });
+  it('器具の排水口径より細い管は NG（明細の排水口径の最大値で判定）', () => {
+    const r = run(drainagePipe, { D: '65' });
     expect(value(r, 'okSize')).toBe('NG');
+    expectExcelMatches(r);
+    const fx = JSON.stringify([
+      { name: '洗面器', n: '2', u: '1', d: '30' },
+      { name: '掃除流し', n: '1', u: '3', d: '65' },
+    ]);
+    const ok = run(drainagePipe, { fx, D: '65' });
+    expect(value(ok, 'DFU')).toBe(5);
+    expect(value(ok, 'Do')).toBe(65);
+    expect(value(ok, 'okSize')).toBe('OK');
+    expect(value(run(drainagePipe, { fx, D: '50' }), 'okSize')).toBe('NG');
+  });
+  it('器具がすべて 0 個でも計算でき、注意を出す', () => {
+    const r = run(drainagePipe, { fx: JSON.stringify([{ name: '洗面器', n: '0', u: '1', d: '30' }]) });
+    expect(value(r, 'DFU')).toBe(0);
+    expect(r.warnings.length).toBe(1);
     expectExcelMatches(r);
   });
 });
