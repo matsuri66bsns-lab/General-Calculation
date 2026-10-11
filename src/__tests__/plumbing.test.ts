@@ -50,8 +50,7 @@ describe('PL-02 給水負荷単位と給水管径', () => {
     expect(r.warnings.length).toBe(1);
   });
   it('器具がすべて 0 個でも計算でき、注意を出す', () => {
-    const zero = Object.fromEntries(Object.keys(waterSupplyPipe.defaults).filter((k) => k.startsWith('n_')).map((k) => [k, '0']));
-    const r = run(waterSupplyPipe, zero);
+    const r = run(waterSupplyPipe, { fx: JSON.stringify([{ name: '洗面器', n: '0', u: '2' }]) });
     expect(value(r, 'FU')).toBe(0);
     expect(r.warnings.length).toBe(1);
     expectExcelMatches(r);

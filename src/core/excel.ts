@@ -1,7 +1,7 @@
 import type { Workbook, Worksheet, Cell, Borders, Border } from 'exceljs';
-import type { CalcResult, ToolDef, ToolDoc } from './types';
+import type { CalcResult, SheetTableRow, ToolDef, ToolDoc } from './types';
 import type { ExportOptions, ProjectInfo } from './project';
-import { COLUMNS, EXPR_COL, HEADER_ROW, isWideText, layoutRows, VALUE_COL } from './layout';
+import { COLUMNS, EXPR_COL, HEADER_ROW, isWideText, layoutRows, VALUE_COL, type TableLayout } from './layout';
 import { excelNumFmt } from './format';
 import { categoryOf } from '../tools/categories';
 
@@ -124,7 +124,7 @@ function box(ws: Worksheet, r1: number, c1: number, r2: number, c2: number, oute
   }
 }
 
-function pageSetup(ws: Worksheet, lastCol: number, printTitles?: string) {
+function pageSetup(ws: Worksheet, lastCol: number, printTitles?: string, footerNote = '') {
   ws.pageSetup = {
     paperSize: 9,
     orientation: 'portrait',
@@ -136,7 +136,8 @@ function pageSetup(ws: Worksheet, lastCol: number, printTitles?: string) {
     margins: MARGINS,
     printTitlesRow: printTitles,
   };
-  ws.headerFooter = { oddFooter: `&C- &P / &N -&R&"${FONT.body}"&8${SITE}` };
+  // 右下に作成元とツールの版を小さく書く（公的な様式の右下の改定表示にならう）
+  ws.headerFooter = { oddFooter: `&C- &P / &N -&R&"${FONT.body}"&8${SITE}${footerNote ? `　${footerNote}` : ''}` };
   ws.properties.defaultRowHeight = 16;
   void lastCol;
 }
@@ -145,20 +146,32 @@ function pageSetup(ws: Worksheet, lastCol: number, printTitles?: string) {
  * 各頁の表題欄（1〜4行目）。左に案件、右に作成日・作成者・照査者を置く。
  * split は左半分の最後の列番号。
  */
-function titleBlock(ws: Worksheet, ncols: number, split: number, title: string, project: ProjectInfo, date: string) {
-  const left = (r: number, label: string, value: string) =>
-    put(ws, r, 1, split, `${label}　${value}`, { size: SIZE.body });
-  const right = (r: number, label: string, value: string) =>
-    put(ws, r, split + 1, ncols, `${label}　${value}`, { size: SIZE.body });
-  left(1, '工事名称', project.projectName);
-  right(1, '作成日', date);
-  put(ws, 2, 1, ncols, title, { head: true, bold: true, size: SIZE.title, align: 'center' });
-  left(3, '施設名称', project.buildingName);
-  right(3, '作成者', project.author);
-  left(4, '設計者', project.company);
-  right(4, '照査者', project.checker);
+function titleBlock(
+  ws: Worksheet,
+  ncols: number,
+  split: number,
+  heading: { category: string; title: string; number: string },
+  project: ProjectInfo,
+  date: string,
+) {
+  const left = (r: number, text: string) => put(ws, r, 1, split, text, { size: SIZE.body });
+  const right = (r: number, text: string) => put(ws, r, split + 1, ncols, text, { size: SIZE.body });
+  left(1, `工事名称　${project.projectName}`);
+  right(1, `計算書番号　${heading.number}`);
+  // 計算名の上に設備区分を小さく書く
+  const t = put(ws, 2, 1, ncols, '', { head: true, align: 'center' });
+  t.value = {
+    richText: [
+      { text: `${heading.category}\n`, font: { name: FONT.head, size: SIZE.small, color: { argb: COLOR.sub } } },
+      { text: heading.title, font: { name: FONT.head, size: SIZE.title, bold: true, color: { argb: COLOR.text } } },
+    ],
+  };
+  left(3, `施設名称　${project.buildingName}`);
+  right(3, `作成日　${date}`);
+  left(4, `設計者　${project.company}`);
+  right(4, `作成者　${project.author}　　照査者　${project.checker}`);
   ws.getRow(1).height = 18;
-  ws.getRow(2).height = 30;
+  ws.getRow(2).height = 38;
   ws.getRow(3).height = 18;
   ws.getRow(4).height = 18;
   box(ws, 1, 1, 4, ncols, medium, { h: thin });
@@ -167,6 +180,19 @@ function titleBlock(ws: Worksheet, ncols: number, split: number, title: string, 
     ws.getCell(r, split).border = { ...ws.getCell(r, split).border, right: thin };
     ws.getCell(r, split + 1).border = { ...ws.getCell(r, split + 1).border, left: thin };
   }
+}
+
+/** 設備区分の名称（表題欄に書く） */
+const CATEGORY_LABEL: Record<ToolDef['category'], string> = {
+  hvac: '空気調和・換気設備',
+  plumbing: '給排水衛生設備',
+  electrical: '電気設備',
+  fire: '消防・防災設備',
+  common: '建築設備（共通）',
+};
+
+function categoryLabel(tool: ToolDef): string {
+  return CATEGORY_LABEL[tool.category];
 }
 
 function headerRow(ws: Worksheet, row: number, cells: { from: number; to: number; text: string }[]) {
@@ -271,12 +297,63 @@ function coverSheet(wb: Workbook, tool: ToolDef, project: ProjectInfo, date: str
 /* 計算書本体                                                         */
 /* ------------------------------------------------------------------ */
 
+/** 計算書の中の明細表。1行目に表の名前、2行目に列見出し、その次から行を並べる */
+function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow: number, N: number) {
+  const col = (letter: string) => letter.charCodeAt(0) - 64;
+  put(ws, labelRow, 2, N, row.note ? `${row.label}（${row.note}）` : row.label, { head: true, bold: true });
+  ws.getRow(labelRow).height = 18;
+  for (let c = 1; c <= N; c++) ws.getCell(labelRow, c).border = { left: c === 1 ? medium : undefined, right: c === N ? medium : undefined };
+  // 列見出し。計算列は2行目に式を書く
+  put(ws, t.headerRow, 1, 1, 'No.', { head: true, align: 'center' });
+  let headLines = 1;
+  row.columns.forEach((c, ci) => {
+    const exprText = c.expr ? `\n= ${c.expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => row.columns.find((x) => x.key === k)?.symbol ?? k).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, '$1')}` : '';
+    const text = `${c.label}${c.symbol ? ` ${c.symbol}` : ''}${c.unit ? `［${c.unit}］` : ''}${exprText}`;
+    const ci1 = col(t.colLetters[ci]);
+    const cell = put(ws, t.headerRow, ci1, ci1, text, { head: true, size: SIZE.small, align: 'center' });
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR.headBg } };
+    headLines = Math.max(headLines, lineCount(text, ws.getColumn(ci1).width ?? 8, SIZE.small));
+  });
+  ws.getRow(t.headerRow).height = heightFor(headLines, SIZE.small);
+  const lastCol = col(t.colLetters[t.colLetters.length - 1]);
+  row.rows.forEach((vals, ri) => {
+    const r = t.firstRow + ri;
+    put(ws, r, 1, 1, ri + 1, { align: 'center' });
+    let lines = 1;
+    vals.forEach((v, ci) => {
+      const c = row.columns[ci];
+      const cell = ws.getCell(r, col(t.colLetters[ci]));
+      const f = t.formulas[ri][ci];
+      cell.value = f ? { formula: f, result: v } : v;
+      setFont(cell, f ? {} : { color: COLOR.inputText });
+      if (!f) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR.inputBg } };
+      const fmt = excelNumFmt(c.digits);
+      if (fmt && typeof v === 'number') cell.numFmt = fmt;
+      cell.alignment = { horizontal: typeof v === 'number' ? 'right' : 'left', vertical: 'top', wrapText: typeof v === 'string' };
+      if (typeof v === 'string') lines = Math.max(lines, lineCount(v, ws.getColumn(col(t.colLetters[ci])).width ?? 8));
+    });
+    ws.getRow(r).height = heightFor(lines);
+  });
+  // 罫線：表の範囲は細線の格子、左右は計算書の外枠
+  for (let r = t.headerRow; r <= Math.max(t.headerRow, t.lastRow); r++) {
+    for (let c = 1; c <= N; c++) {
+      const inTable = c <= lastCol;
+      ws.getCell(r, c).border = {
+        top: inTable ? thin : undefined,
+        bottom: inTable ? thin : undefined,
+        left: c === 1 ? medium : inTable ? thin : undefined,
+        right: c === N ? medium : c === lastCol ? thin : undefined,
+      };
+    }
+  }
+}
+
 function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: ProjectInfo, options: ExportOptions, date: string) {
   const ws = wb.addWorksheet('計算書', { views: [{ state: 'frozen', ySplit: HEADER_ROW }] });
   const N = COLUMNS.length;
   ws.columns = COLUMNS.map((c) => ({ width: c.width }));
-  pageSetup(ws, N, `1:${HEADER_ROW}`);
-  titleBlock(ws, N, 4, `${tool.id}　${tool.title}　計算書`, project, date);
+  pageSetup(ws, N, `1:${HEADER_ROW}`, `${tool.id} ${tool.publishedAt}版`);
+  titleBlock(ws, N, 4, { category: categoryLabel(tool), title: `${tool.title}　計算書`, number: tool.id }, project, date);
   headerRow(
     ws,
     HEADER_ROW,
@@ -286,10 +363,19 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
   const laid = layoutRows(result.rows);
   const exprCol = EXPR_COL.charCodeAt(0) - 64;
   const valueCol = VALUE_COL.charCodeAt(0) - 64;
+  // 係数などの入力値は、画面の候補の値を目安として備考に書く
+  const hint = (key: string): string => {
+    const f = tool.fields.find((x) => x.key === key);
+    return f && f.type === 'number' && f.suggestions?.length ? `目安 ${f.suggestions.map((x) => x.label).join('・')}` : '';
+  };
   let section = 0;
   for (const l of laid) {
     const { row, excelRow } = l;
     const xr = ws.getRow(excelRow);
+    if (row.kind === 'table') {
+      if (l.table) detailTable(ws, l.table, row, excelRow, N);
+      continue;
+    }
     if (row.kind === 'section') {
       section++;
       put(ws, excelRow, 1, 1, section, { head: true, bold: true, align: 'center' });
@@ -302,7 +388,8 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
     put(ws, excelRow, 3, 3, row.symbol ?? '', { align: 'center', valign: 'top' });
     const unit = put(ws, excelRow, 6, 6, row.unit ?? '', { align: 'center', valign: 'top', wrap: false });
     unit.alignment = { ...unit.alignment, shrinkToFit: true };
-    put(ws, excelRow, 7, 7, row.note ?? '', { valign: 'top', size: SIZE.small });
+    const note = row.note ?? (row.kind === 'input' ? hint(row.key) : '');
+    put(ws, excelRow, 7, 7, note, { valign: 'top', size: SIZE.small });
 
     const wide = isWideText(row);
     if (wide) ws.mergeCells(excelRow, exprCol, excelRow, valueCol);
@@ -334,7 +421,7 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
     const lines = Math.max(
       lineCount(row.label, COLUMNS[1].width),
       lineCount(exprText, COLUMNS[3].width),
-      lineCount(row.note ?? '', COLUMNS[6].width, SIZE.small),
+      lineCount(note, COLUMNS[6].width, SIZE.small),
       typeof row.value === 'string' ? lineCount(String(l.cellValue), wide ? COLUMNS[3].width + COLUMNS[4].width : COLUMNS[4].width) : 1,
     );
     xr.height = heightFor(lines);
@@ -346,7 +433,7 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
       };
     }
   }
-  const lastRow = laid.length ? laid[laid.length - 1].excelRow : HEADER_ROW;
+  const lastRow = Math.max(HEADER_ROW, ...laid.map((l) => l.table?.lastRow ?? l.excelRow));
   for (let c = 1; c <= N; c++) {
     const cell = ws.getCell(lastRow, c);
     cell.border = { ...cell.border, bottom: medium };
@@ -389,8 +476,8 @@ function docSheet(wb: Workbook, tool: ToolDef, doc: ToolDoc, project: ProjectInf
   const widths = [4.5, 10, 24, 36, 8, 9.5];
   const N = widths.length;
   ws.columns = widths.map((w) => ({ width: w }));
-  pageSetup(ws, N, '1:4');
-  titleBlock(ws, N, 3, `${tool.id}　${tool.title}　${name}`, project, date);
+  pageSetup(ws, N, '1:4', `${tool.id} ${tool.publishedAt}版`);
+  titleBlock(ws, N, 3, { category: categoryLabel(tool), title: `${tool.title}　${name}`, number: tool.id }, project, date);
 
   let r = 6;
   if (options.formulas) {
