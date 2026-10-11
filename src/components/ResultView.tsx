@@ -10,15 +10,17 @@ function findRow(rows: SheetRow[], key: string): ValueRow | undefined {
 }
 
 /** 明細表の列の計算式（例: "n × u"）。同じ行の列は記号で表す */
-function columnExpr(t: SheetTableRow, expr: string): string {
-  return expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => {
+function columnExpr(t: SheetTableRow, expr: string, rows: SheetRow[]): string {
+  const withCols = expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => {
     const c = t.columns.find((x) => x.key === k);
     return c?.symbol ?? c?.label ?? k;
   });
+  // 表の外の行（{key}）は記号で表す
+  return exprSymbolic(withCols, rows);
 }
 
 /** 計算根拠の中の明細表 */
-function DetailTable({ table }: { table: SheetTableRow }) {
+function DetailTable({ table, rows }: { table: SheetTableRow; rows: SheetRow[] }) {
   return (
     <div className="detail">
       <div className="detail__head">
@@ -37,7 +39,7 @@ function DetailTable({ table }: { table: SheetTableRow }) {
                   {c.label}
                   {c.symbol && <span className="sym">{c.symbol}</span>}
                   {c.unit && <span className="detail__unit">［{c.unit}］</span>}
-                  {c.expr && <span className="detail__expr">= {columnExpr(table, c.expr)}</span>}
+                  {c.expr && <span className="detail__expr">= {columnExpr(table, c.expr, rows)}</span>}
                 </th>
               ))}
             </tr>
@@ -152,7 +154,7 @@ export function CalcTable({ result }: { result: CalcResult }) {
               return (
                 <tr key={row.key} className="calc-table__detail">
                   <td colSpan={4}>
-                    <DetailTable table={row} />
+                    <DetailTable table={row} rows={result.rows} />
                   </td>
                 </tr>
               );

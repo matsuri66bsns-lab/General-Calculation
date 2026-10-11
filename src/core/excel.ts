@@ -1,4 +1,5 @@
 import type { Workbook, Worksheet, Cell, Borders, Border } from 'exceljs';
+import { isValueRow } from './types';
 import type { CalcResult, SheetTableRow, ToolDef, ToolDoc } from './types';
 import type { ExportOptions, ProjectInfo } from './project';
 import { COLUMNS, EXPR_COL, HEADER_ROW, isWideText, layoutRows, VALUE_COL, type TableLayout } from './layout';
@@ -298,7 +299,7 @@ function coverSheet(wb: Workbook, tool: ToolDef, project: ProjectInfo, date: str
 /* ------------------------------------------------------------------ */
 
 /** 計算書の中の明細表。1行目に表の名前、2行目に列見出し、その次から行を並べる */
-function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow: number, N: number) {
+function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow: number, N: number, symbolOf: (key: string) => string) {
   const col = (letter: string) => letter.charCodeAt(0) - 64;
   put(ws, labelRow, 2, N, row.note ? `${row.label}（${row.note}）` : row.label, { head: true, bold: true });
   ws.getRow(labelRow).height = 18;
@@ -307,7 +308,7 @@ function detailTable(ws: Worksheet, t: TableLayout, row: SheetTableRow, labelRow
   put(ws, t.headerRow, 1, 1, 'No.', { head: true, align: 'center' });
   let headLines = 1;
   row.columns.forEach((c, ci) => {
-    const exprText = c.expr ? `\n= ${c.expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => row.columns.find((x) => x.key === k)?.symbol ?? k).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, '$1')}` : '';
+    const exprText = c.expr ? `\n= ${c.expr.replace(/\{@([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => row.columns.find((x) => x.key === k)?.symbol ?? k).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k: string) => symbolOf(k))}` : '';
     const text = `${c.label}${c.symbol ? ` ${c.symbol}` : ''}${c.unit ? `［${c.unit}］` : ''}${exprText}`;
     const ci1 = col(t.colLetters[ci]);
     const cell = put(ws, t.headerRow, ci1, ci1, text, { head: true, size: SIZE.small, align: 'center' });
@@ -373,7 +374,10 @@ function mainSheet(wb: Workbook, tool: ToolDef, result: CalcResult, project: Pro
     const { row, excelRow } = l;
     const xr = ws.getRow(excelRow);
     if (row.kind === 'table') {
-      if (l.table) detailTable(ws, l.table, row, excelRow, N);
+      if (l.table) detailTable(ws, l.table, row, excelRow, N, (k) => {
+        const r = result.rows.find((x) => isValueRow(x) && x.key === k);
+        return r && isValueRow(r) ? r.symbol ?? r.label : k;
+      });
       continue;
     }
     if (row.kind === 'section') {

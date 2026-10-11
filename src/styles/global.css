@@ -1674,6 +1674,10 @@ h1.page-head {
   vertical-align: top;
 }
 
+.detail__table td.ta-r {
+  text-align: right;
+}
+
 .detail__table th {
   font-weight: 500;
   color: var(--text-2);
