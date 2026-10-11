@@ -1643,6 +1643,7 @@ h1.page-head {
 .check__label {
   display: block;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .check__desc {

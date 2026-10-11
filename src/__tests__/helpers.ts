@@ -4,7 +4,7 @@
  */
 import { expect } from 'vitest';
 import { HyperFormula } from 'hyperformula';
-import { layoutRows } from '../core/layout';
+import { EXPR_COL, layoutRows, VALUE_COL } from '../core/layout';
 import { parseValues } from '../core/values';
 import { placeholders } from '../core/formula';
 import type { CalcResult, RawValues, ToolDef, Values } from '../core/types';
@@ -41,16 +41,23 @@ export function value(result: CalcResult, key: string): number | string {
 export function expectExcelMatches(result: CalcResult, label = '') {
   const laid = layoutRows(result.rows);
   const last = Math.max(...laid.map((l) => l.excelRow));
-  const grid: (string | number | null)[][] = Array.from({ length: last }, () => [null, null, null]);
+  const V = VALUE_COL.charCodeAt(0) - 65;
+  const X = EXPR_COL.charCodeAt(0) - 65;
+  const grid: (string | number | null)[][] = Array.from({ length: last }, () => Array(V + 1).fill(null));
   for (const l of laid) {
-    if (l.row.kind === 'input') grid[l.excelRow - 1][2] = l.row.value;
-    if (l.row.kind === 'calc') grid[l.excelRow - 1][2] = `=${l.formula}`;
+    if (l.row.kind === 'input') grid[l.excelRow - 1][l.cell.charCodeAt(0) - 65] = l.row.value;
+    if (l.row.kind === 'calc') {
+      grid[l.excelRow - 1][V] = `=${l.formula}`;
+      // 代入式の列。HyperFormula の TEXT は桁区切りの書式に対応しないので、検算では外す
+      const f = l.substitution?.formula;
+      if (f && !f.includes('E+00')) grid[l.excelRow - 1][X] = `=${f.replace(/#,##0/g, '0')}`;
+    }
   }
   const hf = HyperFormula.buildFromArray(grid, { licenseKey: 'gpl-v3', precisionRounding: 12 });
   try {
     for (const l of laid) {
       if (l.row.kind !== 'calc') continue;
-      const got = hf.getCellValue({ sheet: 0, row: l.excelRow - 1, col: 2 });
+      const got = hf.getCellValue({ sheet: 0, row: l.excelRow - 1, col: V });
       const want = l.cellValue;
       const msg = `${label} ${l.row.key}: ${l.formula} → ${JSON.stringify(got)}（画面の値 ${JSON.stringify(want)}）`;
       if (typeof want === 'number') {
@@ -59,10 +66,34 @@ export function expectExcelMatches(result: CalcResult, label = '') {
       } else {
         expect(got, msg).toBe(want);
       }
+      // 代入式は画面の表示（桁区切りを除く）と同じ文字になる
+      const sub = l.substitution;
+      if (sub?.formula && !sub.formula.includes('E+00')) {
+        const text = hf.getCellValue({ sheet: 0, row: l.excelRow - 1, col: X });
+        expectSameText(String(text), sub.text, `${label} ${l.row.key} の代入式: ${sub.formula}`);
+      }
     }
   } finally {
     hf.destroy();
   }
+}
+
+/**
+ * 代入式の文字の比較。桁区切りは無視し、数値は最後の桁の ±1 まで許す
+ * （HyperFormula の TEXT は 17.15 のような値の丸めが Excel と異なるため）
+ */
+function expectSameText(got: string, want: string, msg: string) {
+  const NUM = /-?\d+(?:\.\d+)?/g;
+  const norm = (s: string) => s.replace(/,/g, '');
+  const g = norm(got);
+  const w = norm(want);
+  expect(g.replace(NUM, '#'), msg).toBe(w.replace(NUM, '#'));
+  const gn = g.match(NUM) ?? [];
+  const wn = w.match(NUM) ?? [];
+  wn.forEach((n, i) => {
+    const step = 10 ** -(n.split('.')[1]?.length ?? 0);
+    expect(Math.abs(Number(gn[i]) - Number(n)), `${msg}（${got} / ${want}）`).toBeLessThanOrEqual(step * 1.0001);
+  });
 }
 
 /** 既定値と、select のすべての選択肢の組み合わせ（1項目ずつ切り替えたもの） */

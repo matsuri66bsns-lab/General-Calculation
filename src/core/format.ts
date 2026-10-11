@@ -1,5 +1,5 @@
 /** 桁数を指定しないときの自動の小数桁数 */
-function autoDigits(x: number): number {
+export function autoDigits(x: number): number {
   const a = Math.abs(x);
   if (a === 0) return 0;
   if (a >= 1000) return 0;

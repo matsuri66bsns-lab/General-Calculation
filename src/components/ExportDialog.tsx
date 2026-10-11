@@ -89,17 +89,23 @@ export function ExportDialog({ open, busy, error, onClose, onExport }: Props) {
               <legend>計算書に含める内容</legend>
               <p className="muted small">計算書本体（入力値・計算式・結果）は常に含みます。</p>
               {EXPORT_OPTION_FIELDS.map((f) => (
-                <label className="check" key={f.key}>
+                <div className="check" key={f.key}>
                   <input
+                    id={`${id}-opt-${f.key}`}
                     type="checkbox"
                     checked={options[f.key]}
+                    aria-describedby={`${id}-opt-${f.key}-desc`}
                     onChange={(e) => setOptions({ ...options, [f.key]: e.target.checked })}
                   />
                   <span>
-                    <span className="check__label">{f.label}</span>
-                    <span className="check__desc">{f.desc}</span>
+                    <label className="check__label" htmlFor={`${id}-opt-${f.key}`}>
+                      {f.label}
+                    </label>
+                    <span className="check__desc" id={`${id}-opt-${f.key}-desc`}>
+                      {f.desc}
+                    </span>
                   </span>
-                </label>
+                </div>
               ))}
             </fieldset>
           </div>
